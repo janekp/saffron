@@ -27,11 +27,31 @@ typedef DataAdapter = {
 class Data {
     public static var adapter : Void -> DataAdapter = null;
     
-    @:macro public static function exec(q : String, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDatabaseExec(q, p, fn);
+    @:macro public static function exec(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+        return Macros.generateDataExec(ctx, q, p, fn);
     }
     
-    @:macro public static function query(q : String, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDatabaseQuery(q, p, fn);
+    @:macro public static function query(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+        return Macros.generateDataQuery(ctx, q, p, fn);
     }
+    
+#if server
+    @:macro private static function clearRemoteHandlers() : Expr {
+        return Macros.clearRemoteHandlers();
+    }
+    
+#if !macro
+    private static function __init__() : Void untyped {
+        Data.clearRemoteHandlers();
+        
+        try {
+            var path = require.resolve(__filename + '.calls');
+            saffron.Server.__remoteHandlers = require('vm').runInThisContext('[' + require('fs').readFileSync(path, 'utf-8') + ']', path);
+        }
+        catch(e : Dynamic) {
+        }
+    }
+#end
+
+#end
 }

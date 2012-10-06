@@ -11,6 +11,12 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 #end
 
+private typedef ServerRemoteHandler = {
+    var id : String;
+    var query : String;
+    var args : String;
+};
+
 class Server {
 
     @:macro public function config(ethis : Expr, key : Expr, value : Expr) : Expr {
@@ -38,6 +44,7 @@ class Server {
     public var database : Void -> Data.DataAdapter = null;
     public var max_post_size : Int = 1024 * 16; // 16kib
     public var strip_trailing_slash : Bool = true; // /hello/ -> /hello
+    public var remote_prefix : String = '/r/';
     public var root : String = null;
     
     private var errors : Dynamic;
@@ -218,6 +225,14 @@ class Server {
         Server.context = this;
         Data.adapter = this.database;
         
+#if server
+        if(this.remote_prefix != null && Server.__remoteHandlers != null) {
+            for(handler in Server.__remoteHandlers) {
+                this.addHandler(this.remote_prefix + handler.id, null, Server.__remoteHandler(handler), 'POST', 'none', null, null);
+            }
+        }
+#end
+        
         if(Connect != null) {
             var server = Connect.createServer().use(function(req, res, next) {
                 this.handleRequest(req, res, next);
@@ -283,6 +298,28 @@ class Server {
         
         return func;
     }
+    
+#if server
+    private static var __remoteHandlers : Array<ServerRemoteHandler>;
+    
+    private static function __remoteHandler(handler : ServerRemoteHandler) : Context.ContextHandler {
+        return function(ctx) {
+            var args : String = ctx.query[untyped 'v'];
+            
+            // TODO: Quick proto
+            saffron.Data.adapter().query(handler.query, (handler.args != null && args != null) ? [ untyped parseInt(args) ] : null, function(err, results) {
+                ctx.response.writeHead(200, { "Content-Type": "application/json" });
+                
+                if(err != null) {
+                    ctx.response.end(Environment.JSON.stringify({ error: err }));
+                } else {
+                    ctx.response.end(Environment.JSON.stringify({ results: results }));
+                }
+            });
+        };
+    }
+#end
+    
 #end
 }
 

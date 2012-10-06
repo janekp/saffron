@@ -16,7 +16,15 @@ import haxe.macro.Expr;
 #end
 
 class Handler {
-        
+    
+    @:macro public function exec(ethis : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+        return Macros.generateDataExec(ethis, q, p, fn);
+    }
+    
+    @:macro public function query(ethis : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+        return Macros.generateDataQuery(ethis, q, p, fn);
+    }
+    
 #if !macro
     private var _ctx : saffron.Context;
     
@@ -45,7 +53,7 @@ class Handler {
         return this._ctx.cookies;
     }
     
-    private inline function get(name : String) : String {
+    private inline function param(name : String) : String {
         return this._ctx.query[untyped name];
     }
     
