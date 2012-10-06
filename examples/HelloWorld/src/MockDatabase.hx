@@ -39,9 +39,9 @@ class MockDatabase {
     
     public function query(q : String, ?p : Array<Dynamic>, fn : DataError -> Array<Dynamic> -> Void) : Void {
         Environment.setTimeout(function() {
-            if(q == 'SELECT ITEMS') {
+            if(q == 'SELECT * FROM ITEMS') {
                 fn(null, this.data);
-            } else if(q == 'SELECT ITEMS WHERE id = ?' && p != null && p.length == 1) {
+            } else if(q == 'SELECT * FROM ITEMS WHERE id = ?' && p != null && p.length == 1) {
                 var result : Array<Dynamic> = new Array<Dynamic>();
                 
                 for(i in 0...this.data.length) {

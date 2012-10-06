@@ -7,7 +7,7 @@ import saffron.Page;
 
 class IndexPage extends Page {
     public function index() : Void {
-        Data.query('SELECT ITEMS', function(err, results) {
+        this.query('SELECT * FROM ITEMS', function(err, results) {
             this.render({ items: results });
         });
     }
