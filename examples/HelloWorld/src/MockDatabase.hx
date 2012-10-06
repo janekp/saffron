@@ -2,7 +2,7 @@
 
 package;
 
-import saffron.Database;
+import saffron.Data;
 import saffron.Environment;
 
 typedef MockDatabaseItem = {
@@ -16,7 +16,7 @@ class MockDatabase {
     
     private var data : Array<MockDatabaseItem>;
     
-    public static function connect() : DatabaseAdapter {
+    public static function connect() : DataAdapter {
         if(shared == null) {
             shared = new MockDatabase();
         }
@@ -31,13 +31,13 @@ class MockDatabase {
         this.data.push({ id: 3, title: 'Hello #3', description: 'Hello World!!!' });
     }
     
-    public function exec(q : String, ?p : Array<Dynamic>, fn : DatabaseError -> DatabaseResult -> Void) : Void {
+    public function exec(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {
         Environment.setTimeout(function() {
             fn({ code: 'Unsupported', fatal: true }, null);
         }, 10);
     }
     
-    public function query(q : String, ?p : Array<Dynamic>, fn : DatabaseError -> Array<Dynamic> -> Void) : Void {
+    public function query(q : String, ?p : Array<Dynamic>, fn : DataError -> Array<Dynamic> -> Void) : Void {
         Environment.setTimeout(function() {
             if(q == 'SELECT ITEMS') {
                 fn(null, this.data);
