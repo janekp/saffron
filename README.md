@@ -13,7 +13,7 @@ The database is never exposed directly. For example:
 
     class ItemPage extends Page {
         public function index(id : Int) : Void {
-            Data.query('SELECT * FROM ITEMS WHERE id = ?', [ id ], function(err, results) {
+            this.query('SELECT * FROM ITEMS WHERE id = ?', [ id ], function(err, results) {
                 this.render(results);
             });
         }
@@ -34,16 +34,11 @@ On the server-side it's compiled to:
     	}
     });
     
-    saffron.Data.__remoteHandlers = [
+    saffron.Server.__remoteHandlers = [
         {
             id: "bf4d84",
             query: "SELECT * FROM ITEMS WHERE id = ?",
-            arguments: 'I',
-            index: 0,
-            auth: 'N',
-            func: function(ctx) { saffron.Data.__remoteCall(ctx, 0); },
-            before: function(ctx, fn) { },
-            after: function(ctx, fn) { },
+            args: 'I'
         }
     ];
 
