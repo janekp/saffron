@@ -5,10 +5,17 @@ package saffron;
 #if !client
 
 import js.Node;
-import saffron.Database;
+import saffron.Data;
+
+typedef MySQLOptions = {
+    var host : String;
+    var port : Int;
+    var user : String;
+    var password : String;
+}
 
 extern class MySQL {
-    public static function createConnection(options : DatabaseOptions) : DatabaseAdapter;
+    public static function createConnection(options : MySQLOptions) : DataAdapter;
     
     private static function __init__() : Void untyped {
         try {

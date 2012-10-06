@@ -193,6 +193,28 @@ class Macros {
         
         return Context.parse('{' + str + ';}', Context.currentPos());
     }
+    //haxe.SHA1.encode(q)
+    public static function generateDatabaseQuery(q : String, p : Expr, fn : Expr) : Expr {
+        var _q = { expr: EConst(CString(q)), pos: Context.currentPos() };
+        
+        if(switch(p.expr) { case EFunction(name, f): true; default: false; }) {
+            fn = p;
+            p = { expr: EConst(CIdent('null')), pos: Context.currentPos() };
+        }
+        
+#if client
+        //return macro saffron.Data.query($q, $p, $fn);
+#elseif server
+        
+#else
+        return macro saffron.Data.adapter().query($_q, $p, $fn);
+#end
+    }
+    
+    public static function generateDatabaseExec(q : String, p : Expr, fn : Expr) : Expr {
+        return macro "";
+    }
+    
 }
 
 #end

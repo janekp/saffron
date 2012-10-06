@@ -16,11 +16,7 @@ import haxe.macro.Expr;
 #end
 
 class Handler {
-    
-    @:macro public function linkify(ethis : Expr, type : Expr) : Expr {
-        return Macros.linkify(ethis, type, true);
-    }
-    
+        
 #if !macro
     private var _ctx : saffron.Context;
     
@@ -30,7 +26,7 @@ class Handler {
     
     private inline function error(?status : Int) : Void {
 #if !client
-        untyped this._ctx.server.handleError((status != null) ? status : 500, this._ctx.request, this._ctx.response);
+        untyped Server.context.handleError((status != null) ? status : 500, this._ctx.request, this._ctx.response);
 #else
         // TODO: 
 #end
@@ -42,14 +38,6 @@ class Handler {
         this._ctx.response.end();
 #else
         Window.location.replace(location);
-#end
-    }
-    
-    private inline function database() : Database.DatabaseAdapter {
-#if !client
-        return this._ctx.server.database();
-#else
-        return null;
 #end
     }
     

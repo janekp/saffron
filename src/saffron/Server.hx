@@ -32,8 +32,10 @@ class Server {
     }
     
 #if !macro
+    public static var context : Server = null;
+    
     public var auth : Context -> (Dynamic -> Int -> Void) -> Void = null;
-    public var database : Void -> Database.DatabaseAdapter = null;
+    public var database : Void -> Data.DataAdapter = null;
     public var max_post_size : Int = 1024 * 16; // 16kib
     public var strip_trailing_slash : Bool = true; // /hello/ -> /hello
     public var root : String = null;
@@ -134,7 +136,6 @@ class Server {
         var handler : Context.ContextHandler = null;
         var regex, plen;
         
-        ctx.server = this;
         ctx.request = req;
         ctx.response = res;
         
@@ -214,6 +215,9 @@ class Server {
     }
     
     public function start(?port : Int, ?host : String) : Connect {
+        Server.context = this;
+        Data.adapter = this.database;
+        
         if(Connect != null) {
             var server = Connect.createServer().use(function(req, res, next) {
                 this.handleRequest(req, res, next);

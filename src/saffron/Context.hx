@@ -11,7 +11,6 @@ typedef ContextUrl = NodeUrlObj;
 typedef Context = { > ContextUrl,
     var cookies : Cookies;
     var id : String;
-    var server : Server;
     var template : String;
     var token : Dynamic;
     var request : NodeHttpServerReq;
@@ -36,7 +35,6 @@ typedef ContextUrl = {
 typedef Context = { > ContextUrl,
     var cookies : Cookies;
     var id : String;
-    var client : Client;
     var template : String;
     var token : Dynamic;
     var resume : Void -> Void;
