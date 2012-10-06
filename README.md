@@ -33,6 +33,19 @@ On the server-side it's compiled to:
     		});
     	}
     });
+    
+    saffron.Data.__remoteHandlers = [
+        {
+            id: "bf4d84",
+            query: "SELECT * FROM ITEMS WHERE id = ?",
+            arguments: 'I',
+            index: 0,
+            auth: 'N',
+            func: function(ctx) { saffron.Data.__remoteCall(ctx, 0); },
+            before: function(ctx, fn) { },
+            after: function(ctx, fn) { },
+        }
+    ];
 
 On the client-side it's compiled to:
 
@@ -43,7 +56,7 @@ On the client-side it's compiled to:
     ItemPage.prototype = $extend(saffron.Page.prototype,{
     	index: function(id) {
     		var _g = this;
-    		saffron.Data.adapter().query("bf4d847e4d29d839f13db8acad06fe93464b2c77", [ id ],function(err,results) {
+    		saffron.Data.adapter().query("bf4d84", [ id ],function(err,results) {
     			_g.render(results);
     		});
     	}
