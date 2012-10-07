@@ -5,10 +5,10 @@ MAIN_CLASS=Application
 CFLAGS=--dead-code-elimination
 DEBUG=
 
+all: DEBUG = -debug
 all: run
 
-debug: DEBUG = -debug
-debug: run
+release: run
 
 run:
 	mkdir -p $(DST_DIR)

@@ -228,7 +228,11 @@ class Server {
         
 #if server
         if(this.client_prefix != null) {
-            this.addHandler(this.client_prefix, null, Server.__clientHandler, 'GET', 'none', null, null);
+            this.addHandler(this.client_prefix, null, Server.__clientScriptHandler, 'GET', 'none', null, null);
+            
+#if debug
+            this.addHandler(this.client_prefix + '.map', null, Server.__clientScriptMapHandler, 'GET', 'none', null, null);
+#end
         }
         
         if(this.remote_prefix != null && Server.__remoteHandlers != null) {
@@ -325,7 +329,7 @@ class Server {
         };
     }
     
-    private static function __clientHandler(ctx : Context) : Void {
+    private static function __clientScriptHandler(ctx : Context) : Void {
         if(Server.__clientScript == null) {
             try {
                 Server.__clientScript = untyped require('fs').readFileSync(require.resolve(__filename + '.client'), 'utf-8');    
@@ -336,10 +340,37 @@ class Server {
             if(Server.__clientScript == null) {
                 Server.__clientScript = '';
             }
+            
+#if debug
+            Server.__clientScript = untyped Server.__clientScript.replace('sourceMappingURL=index.js.client.map', 'sourceMappingURL=index.js.map');
+#end
         }
         
         ctx.response.writeHead(200, { "Content-Type": "text/javascript" });
         ctx.response.end(Server.__clientScript);
+    }
+#end
+    
+#if debug
+    private static var __clientScriptMap : String;
+    
+    private static function __clientScriptMapHandler(ctx : Context) : Void {
+        if(Server.__clientScriptMap == null) {
+            try {
+                Server.__clientScriptMap = untyped require('fs').readFileSync(require.resolve(__filename + '.client.map'), 'utf-8');    
+            }
+            catch(e : Dynamic) {
+            }
+            
+            if(Server.__clientScriptMap == null) {
+                Server.__clientScriptMap = '';
+            }
+            
+            Server.__clientScriptMap = untyped Server.__clientScriptMap.replace('"index.js.client"', '"index.js"');
+        }
+        
+        ctx.response.writeHead(200, { "Content-Type": "text/javascript" });
+        ctx.response.end(Server.__clientScriptMap);
     }
 #end
     
