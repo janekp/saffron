@@ -10,7 +10,7 @@ class Application {
         
         // Config
         server.config(root, 'static');
-        server.config(database, MockDatabase.connect);
+        server.config(database, MockDatabase.adapter);
         
         // Routes
         server.get('/', IndexPage);

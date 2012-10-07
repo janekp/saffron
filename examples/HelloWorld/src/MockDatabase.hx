@@ -16,7 +16,7 @@ class MockDatabase {
     
     private var data : Array<MockDatabaseItem>;
     
-    public static function connect() : DataAdapter {
+    public static function adapter() : DataAdapter {
         if(shared == null) {
             shared = new MockDatabase();
         }
