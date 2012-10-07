@@ -5,6 +5,7 @@ Saffron is an experimental web-development framework prototype for Haxe/NodeJS. 
 
     * allow code-sharing between server/client
     * client- and server-side rendering
+    * intelligent data preloading
     * secure database access
     * lightweight runtime
 
