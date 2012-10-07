@@ -78,4 +78,8 @@ If want to be sure that certain code is only executed on the server-side then th
         // Client only
         #end
     }
-    
+
+Install
+=======
+
+    haxelib git saffron https://github.com/janekp/saffron.git src
