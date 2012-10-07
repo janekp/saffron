@@ -2,7 +2,6 @@
 
 package;
 
-import saffron.Data;
 import saffron.Page;
 
 class ItemPage extends Page {
