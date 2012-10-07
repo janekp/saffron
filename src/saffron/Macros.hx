@@ -122,6 +122,14 @@ class Macros {
         return null;
     }
     
+    public static function generatePlaceholder() : Expr {
+#if neko
+        return macro untyped '';
+#else
+        return macro untyped __js__('');
+#end
+    }
+    
     public static function generateHandler(ethis : Expr, path : String, method : String, handler : Expr, auth : Expr) : Expr {
         var _auth = Macros.stringify(auth);
         var _handler = Macros.stringify(handler);
@@ -252,7 +260,7 @@ class Macros {
         
         Macros.remoteDataHandlers = null;
         
-        return { expr: EBlock([]), pos: Context.currentPos() };
+        return Macros.generatePlaceholder();
     }
 }
 

@@ -42,6 +42,7 @@ class Server {
     
     public var auth : Context -> (Dynamic -> Int -> Void) -> Void = null;
     public var database : Void -> Data.DataAdapter = null;
+    public var client_prefix : String = '/index.js';
     public var max_post_size : Int = 1024 * 16; // 16kib
     public var strip_trailing_slash : Bool = true; // /hello/ -> /hello
     public var remote_prefix : String = '/r/';
@@ -226,6 +227,10 @@ class Server {
         Data.adapter = this.database;
         
 #if server
+        if(this.client_prefix != null) {
+            this.addHandler(this.client_prefix, null, Server.__clientHandler, 'GET', 'none', null, null);
+        }
+        
         if(this.remote_prefix != null && Server.__remoteHandlers != null) {
             for(handler in Server.__remoteHandlers) {
                 this.addHandler(this.remote_prefix + handler.id, null, Server.__remoteHandler(handler), 'POST', 'none', null, null);
@@ -301,6 +306,7 @@ class Server {
     
 #if server
     private static var __remoteHandlers : Array<ServerRemoteHandler>;
+    private static var __clientScript : String;
     
     private static function __remoteHandler(handler : ServerRemoteHandler) : Context.ContextHandler {
         return function(ctx) {
@@ -317,6 +323,23 @@ class Server {
                 }
             });
         };
+    }
+    
+    private static function __clientHandler(ctx : Context) : Void {
+        if(Server.__clientScript == null) {
+            try {
+                Server.__clientScript = untyped require('fs').readFileSync(require.resolve(__filename + '.client'), 'utf-8');    
+            }
+            catch(e : Dynamic) {
+            }
+            
+            if(Server.__clientScript == null) {
+                Server.__clientScript = '';
+            }
+        }
+        
+        ctx.response.writeHead(200, { "Content-Type": "text/javascript" });
+        ctx.response.end(Server.__clientScript);
     }
 #end
     
