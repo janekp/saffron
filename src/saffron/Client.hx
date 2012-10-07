@@ -86,7 +86,83 @@ import haxe.macro.Expr;
         }
     }
     
+    @:keep
+    public function navigate(url : String) : Void {
+        try {
+            var ctx = this.createContext(url);
+            var handler = this.findHandler(this.handlers_static[untyped 'GET'], this.handlers[untyped 'GET'], ctx);
+            
+            if(handler != null) {
+                untyped window.history.pushState({ }, 'Title', url);
+                handler(ctx);
+            }
+        }
+        catch(e : Dynamic) {
+            trace(e.message);
+        }
+    }
+    
+    private function createContext(url : String) : Context {
+        var ctx : Context = untyped { };
+        var a : Dynamic = untyped document.createElement('A');
+        
+        a.href = url;
+        
+        ctx.href = url;
+        ctx.host = a.hostname;
+        ctx.protocol = untyped a.protocol.replace(':', '');
+        ctx.hostname = a.hostname;
+        ctx.port = a.port;
+        ctx.pathname = untyped a.pathname.replace(__js__("/^([^\\/])/"), '/$1');
+        ctx.search = a.search;
+        ctx.query = untyped (function() {
+            var q = {}, p = a.search.replace(__js__("/^\\?/"), '').split('&'), s;
+            
+            for(i in 0...p.length) {
+                if(p[i].length > 0) {
+                    s = p[i].split('=');
+                    q[s[0]] = s[1];
+                }
+            }
+            
+            return q;
+        }());
+        ctx.hash = untyped a.hash.replace('#', '');
+        
+        return ctx;
+    }
+    
+    private function findHandler(handlers_static : Dynamic, handlers : Array<Context.ContextRegex>, ctx : Context) : Context.ContextHandler {
+        var func = (handlers_static != null) ? handlers_static[untyped ctx.pathname] : null;
+        var result;
+        
+        if(func == null && handlers != null) {
+            for(handler in handlers) {
+                if(handler.pattern.global) {
+                    handler.pattern.lastIndex = 0;
+                }
+                
+                if((result = handler.pattern.exec(ctx.pathname)) != null) {
+                    if(result.length > 1) {
+                        ctx.id = result[1];
+                    }
+                    
+                    func = handler.func;
+                    break;
+                }
+            }
+        }
+        
+        if(func == null && handlers_static != null) {
+            func = handlers_static[untyped __js__('""')];
+        }
+        
+        return func;
+    }
+    
     public function run() : Void {
+        Client.context = this;
+        untyped __js__("document.onclick = function(e) { e = e || window.event; var element = e.target || e.srcElement; if(element.tagName == 'A') { saffron.Client.context.navigate(element.href); return false; } };");
     }
 #end
 }

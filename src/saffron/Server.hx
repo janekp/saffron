@@ -6,6 +6,7 @@ package saffron;
 
 #if !macro
 import js.Node;
+import saffron.Template;
 #else
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -176,7 +177,7 @@ class Server {
                 req.on('end', function() {
                     var query = Node.queryString.parse(postData);
                     
-                    untyped __js__("for(var key in query) { url.query[key] = query[key]; }");
+                    untyped __js__("for(var key in query) { ctx.query[key] = query[key]; }");
                     
                     handler(ctx);
                 });
@@ -311,6 +312,11 @@ class Server {
 #if server
     private static var __remoteHandlers : Array<ServerRemoteHandler>;
     private static var __clientScript : String;
+    private static var __clientLibraries : Array<String>;
+    
+    public static function __generateClientScript(chunk : TemplateChunk, ctx : TemplateContext) : TemplateChunk {
+        return chunk.write('<script type="text/javascript" src="' + Server.context.client_prefix + '"></script>');
+    }
     
     private static function __remoteHandler(handler : ServerRemoteHandler) : Context.ContextHandler {
         return function(ctx) {
@@ -345,9 +351,38 @@ class Server {
             Server.__clientScript = untyped Server.__clientScript.replace('sourceMappingURL=index.js.client.map', 'sourceMappingURL=index.js.map');
 #end
         }
+                
+        if(Server.__clientLibraries == null) {
+            Server.__clientLibraries = new Array<String>();
+            
+            try {
+                var files = Node.fs.readdirSync('client_libraries');
+                
+                for(file in files) {
+                    if(untyped file.indexOf('.js', file.length - 3) != -1) {
+                        Server.__clientLibraries.push(Node.fs.readFileSync('client_libraries/' + file, 'UTF-8'));
+                    }
+                }
+            }
+            catch(e : Dynamic) {
+            }
+        }
         
         ctx.response.writeHead(200, { "Content-Type": "text/javascript" });
-        ctx.response.end(Server.__clientScript);
+        ctx.response.write(Server.__clientScript);
+        
+        for(clientLibrary in Server.__clientLibraries) {
+            ctx.response.write('\n');
+            ctx.response.write(clientLibrary);
+        }
+        
+        if(Template.templates != null) {
+            ctx.response.write('\nsaffron.Template.templates = {');
+            untyped __js__("for(var key in saffron.Template.templates) { ctx.response.write('\"' + key + '\": ' + JSON.stringify(saffron.Template.templates[key]) + ','); }\n");
+            ctx.response.write('};');
+        }
+        
+        ctx.response.end('\ndust.onLoad = saffron.Template.onLoad;\ndust.ready = true;');
     }
 #end
     
@@ -369,7 +404,7 @@ class Server {
             Server.__clientScriptMap = untyped Server.__clientScriptMap.replace('"index.js.client"', '"index.js"');
         }
         
-        ctx.response.writeHead(200, { "Content-Type": "text/javascript" });
+        ctx.response.writeHead(200, { "Content-Type": "application/json" });
         ctx.response.end(Server.__clientScriptMap);
     }
 #end

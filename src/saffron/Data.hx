@@ -25,8 +25,6 @@ typedef DataAdapter = {
 }
 
 class Data {
-    public static var adapter : Void -> DataAdapter = null;
-    
     @:macro public static function exec(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataExec(ctx, q, p, fn);
     }
@@ -39,9 +37,13 @@ class Data {
     @:macro private static function clearRemoteHandlers() : Expr {
         return Macros.clearRemoteHandlers();
     }
+#end
     
 #if !macro
+    public static var adapter : Void -> DataAdapter;
+    
     private static function __init__() : Void untyped {
+#if server
         Data.clearRemoteHandlers();
         
         try {
@@ -50,8 +52,36 @@ class Data {
         }
         catch(e : Dynamic) {
         }
-    }
 #end
-
+    
+#if client
+        saffron.Data.__remoting = {
+            exec: function(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {
+                
+            },
+            query: function(q : String, ?p : Array<Dynamic>, fn : DataError -> Array<Dynamic> -> Void) : Void {
+                if(__js__("typeof(p) === 'function'")) {
+                    fn = p;
+                    p = null;
+                }
+                
+                jQuery.ajax({
+                    url: saffron.Client.context.remote_prefix + q,
+                    type: 'POST',
+                    data: { v: (p != null) ? p[0] : ''
+                } }).done(function(data) {
+                    if(__js__("typeof(data) === 'object'")) {
+                        fn(data.error, data.results);
+                    } else {
+                        fn({ code: 'Unknown', fatal: true }, null);
+                    }
+                }).fail(function(jqXHR, textStatus) {
+                    fn({ code: 'HTTPError', fatal: true }, null);
+                });
+            }
+        };
+        saffron.Data.adapter = function() { return saffron.Data.__remoting; }
+#end
+    }
 #end
 }
