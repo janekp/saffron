@@ -57,3 +57,25 @@ On the client-side it's compiled to:
     		});
     	}
     });
+
+The Haxe compiler won't include classes and methods that are not used, so it's relatively safe by default.
+If want to be sure that certain code is only executed on the server-side then there are two ways:
+
+    // Use compiler metadata
+    @:require(server) class Database {
+        public static function foo() : Void {
+            // Compilation fails if the client tries to access Database.foo()
+        }
+    }
+    
+    // Use macros
+    public function foo() : Void {
+        #if server
+        // Server only
+        #end
+        
+        #if client
+        // Client only
+        #end
+    }
+    
