@@ -12,6 +12,7 @@ typedef MySQLOptions = {
     var port : Int;
     var user : String;
     var password : String;
+    var database : String;
 }
 
 extern class MySQL {
