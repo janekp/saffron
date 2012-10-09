@@ -83,3 +83,7 @@ Install
 =======
 
     haxelib git saffron https://github.com/janekp/saffron.git src
+    
+    # Optional dependencies
+    npm install dustjs-linkedin
+    npm install connect cookies mysql mapstrace
