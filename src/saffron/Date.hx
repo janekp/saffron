@@ -39,4 +39,6 @@ package saffron;
     public function toTimeString() : String;
     public function toISOString() : String;
     public function toUTCString() : String;
+    
+    public function valueOf() : Int;
 }
