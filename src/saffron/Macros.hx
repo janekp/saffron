@@ -248,6 +248,53 @@ class Macros {
     }
     
     public static function generateDataExec(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
+#if client
+        var _q = { expr: EConst(CString(haxe.SHA1.encode(q))), pos: Context.currentPos() };
+#else
+        var _q = { expr: EConst(CString(q)), pos: Context.currentPos() };
+#end
+        
+        if(switch(p.expr) { case EFunction(name, f): true; default: false; }) {
+            fn = p;
+            p = { expr: EConst(CIdent('null')), pos: Context.currentPos() };
+        }
+        
+#if server
+        var id = haxe.SHA1.encode(q);
+        var file = Compiler.getOutput() + '.calls';
+        var fout = (Macros.remoteDataHandlers == null) ? neko.io.File.write(file, false) : neko.io.File.append(file, false);
+        
+        if(Macros.remoteDataHandlers == null) {
+            Macros.remoteDataHandlers = new Hash<Bool>();
+        }
+        
+        if(!Macros.remoteDataHandlers.get(id)) {
+            var a = null;
+            
+            if(switch(p.expr) { case EConst(c): false; default: true; }) {
+                // TODO: Temporary
+                a = 'I';
+            }
+            
+            fout.writeString('{ id: "' + id + '", query: "' + q + '", args: ' + ((a != null) ? '"' + a + '"' : 'null') + ' },\n');
+            fout.close();
+            
+            Macros.remoteDataHandlers.set(id, true);
+        }
+#end
+        
+        return macro saffron.Data.adapter().exec($_q, $p, $fn);
+    }
+    
+    public static function generateDataSubscribe(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
+        return macro "";
+    }
+    
+    public static function generateDataUnsubscribe(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
+        return macro "";
+    }
+    
+    public static function generateDataPush(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
         return macro "";
     }
     
