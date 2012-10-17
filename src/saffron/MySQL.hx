@@ -6,6 +6,7 @@ package saffron;
 
 import js.Node;
 import saffron.Data;
+import saffron.Environment;
 
 typedef MySQLOptions = {
     var host : String;
@@ -41,15 +42,32 @@ extern class MySQL {
                             fn(saffron.MySQL.createConnection(options));
                         },
                         destroy: function(connection) {
-                            
+                            connection.destroy();
                         }
                     };
                     
                     adapter = {
                         pool: __js__("require('generic-pool').Pool(pOptions)"),
                         query: function(q, p, fn) {
-                            adapter.pool.acquire(function(connection) {
-                                connection.query(q, p, fn);
+                            if(__js__("typeof(p) === 'function'")) {
+                                fn = p;
+                                p = null;
+                            }
+                            
+                            adapter.pool.acquire(function(err, connection) {
+                                if(err) {
+				                    fn(err, null);
+				                } else {
+				                    connection.query(q, p, function(err, result) {
+                                        try {
+                                            fn(err, result);
+                                            
+                                        } catch(e : Dynamic) {
+                                            Environment.crash(e);
+                                        }
+                                        __js__("finally { adapter.pool.release(connection); }");
+                                    });
+                                }
                             });
                         }
                     };
