@@ -15,20 +15,29 @@ typedef DataError = {
     var fatal : Bool;
 }
 
-typedef DataResult = {
+@:native('Array') extern class DataResult {
     var insertId : DataIdentifier;
+    var length : Int;
+    
+    public function new() : Void;
+    public function push(item : Dynamic) : Void;
+    
+    public inline function get(index : Int) : Dynamic {
+        return untyped this[index];
+    }
 }
 
+/*
+typedef DataResult = {
+    var insertId : DataIdentifier;
+    var length : Int;
+}*/
+
 typedef DataAdapter = {
-    function exec(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void;
-    function query(q : String, ?p : Array<Dynamic>, fn : DataError -> Array<Dynamic> -> Void) : Void;
+    function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void;
 }
 
 class Data {
-    @:macro public static function exec(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDataExec(ctx, q, p, fn);
-    }
-    
     @:macro public static function query(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataQuery(ctx, q, p, fn);
     }

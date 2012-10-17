@@ -17,10 +17,6 @@ import haxe.macro.Expr;
 
 class Handler {
     
-    @:macro public function exec(ethis : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDataExec(ethis, q, p, fn);
-    }
-    
     @:macro public function query(ethis : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataQuery(ethis, q, p, fn);
     }
