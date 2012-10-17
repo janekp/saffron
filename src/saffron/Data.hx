@@ -27,12 +27,6 @@ typedef DataError = {
     }
 }
 
-/*
-typedef DataResult = {
-    var insertId : DataIdentifier;
-    var length : Int;
-}*/
-
 typedef DataAdapter = {
     function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void;
 }
