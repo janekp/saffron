@@ -42,6 +42,7 @@ class Server {
     public static var context : Server = null;
     
     public var auth : Context -> (Dynamic -> Int -> Void) -> Void = null;
+    public var error : NodeHttpServerReq -> NodeHttpServerResp -> Int -> Void = null;
     public var database : Void -> Data.DataAdapter = null;
     public var client_prefix : String = '/index.js';
     public var max_post_size : Int = 1024 * 16; // 16kib
@@ -130,10 +131,14 @@ class Server {
     }
     
     private function handleError(status : Int, req : NodeHttpServerReq, res : NodeHttpServerResp) : Void {
-        var handler : NodeHttpServerReq -> NodeHttpServerResp -> Void = untyped this.errors[status];
+        var handler : NodeHttpServerReq -> NodeHttpServerResp -> Int -> Void = untyped this.errors[status];
+        
+        if(handler == null) {
+            handler = untyped this.error;
+        }
         
         if(handler != null) {
-            handler(req, res);
+            handler(req, res, status);
         } else {
             res.writeHead((status >= 100 && status < 600) ? status : 500, { "Content-Type": "text/html" });
             res.end();
