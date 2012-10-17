@@ -2,5 +2,8 @@ Install
 =======
 
     # Dependencies
-    npm install dustjs-linkedin connect mapstrace
+    sudo npm install -g dustjs-linkedin connect mapstrace
+    
+    # Node can't find modules?
+    sudo npm link <MODULENAME>
 
