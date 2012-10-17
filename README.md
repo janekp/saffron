@@ -85,5 +85,8 @@ Install
     haxelib git saffron https://github.com/janekp/saffron.git src
     
     # Optional dependencies
-    npm install dustjs-linkedin
-    npm install connect cookies mysql mapstrace
+    sudo npm install -g dustjs-linkedin
+    sudo npm install -g connect cookies mysql@2.0.0-alpha3 mapstrace
+    
+    # Node can't find modules?
+    sudo npm link <MODULENAME>
