@@ -86,7 +86,7 @@ Install
     
     # Optional dependencies
     sudo npm install -g dustjs-linkedin
-    sudo npm install -g connect cookies mysql@2.0.0-alpha3 mapstrace
+    sudo npm install -g connect cookies mysql@2.0.0-alpha3 generic-pool mapstrace
     
     # Node can't find modules?
     sudo npm link <MODULENAME>
