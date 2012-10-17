@@ -6,8 +6,8 @@ import saffron.Page;
 
 class ItemPage extends Page {
     public function index(id : Int) : Void {
-        this.query('SELECT * FROM ITEMS WHERE id = ?', [ id ], function(err, results) {
-            this.render((results.length == 1) ? results.get(0) : null);
+        this.query('SELECT * FROM ITEMS WHERE id = ?', [ id ], function(err, result) {
+            this.render((result.length == 1) ? result[0] : null);
         });
     }
 }

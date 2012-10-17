@@ -39,8 +39,8 @@ class MockDatabase {
                 var result = new DataResult();
                 
                 for(i in 0...this.data.length) {
-                    if(p[0] == this.data.get(i).id) {
-                        result.push(this.data.get(i));
+                    if(p[0] == this.data[i].id) {
+                        result.push(this.data[i]);
                         break;
                     }
                 }
