@@ -26,17 +26,38 @@ extern class MySQL {
     private static function __init__() : Void untyped {
         try {
             saffron.MySQL = Node.require("mysql");
-            saffron.MySQL.reusablePools = { };
+            saffron.MySQL.poolAdapters = { };
             saffron.MySQL.createConnectionFromPool = function(options) {
                 var key = '' + options.host + ':' + options.port + ':' + options.user + ':' + options.password + ':' + options.database;
-                var pool = saffron.MySQL.reusablePools[key];
+                var adapter = saffron.MySQL.poolAdapters[key];
                 
-                if(pool == null) {
-                    pool = __js__("new require('mysql-pool').MySQLPool(options)");
-                    saffron.MySQL.reusablePools[key] = pool;
+                if(adapter == null) {
+                    var pOptions = {
+                        name: 'mysql',
+                        max: options.poolSize,
+                        idleTimeoutMillis: 30000,
+                        log: false,
+                        create: function(fn) {
+                            fn(saffron.MySQL.createConnection(options));
+                        },
+                        destroy: function(connection) {
+                            
+                        }
+                    };
+                    
+                    adapter = {
+                        pool: __js__("require('generic-pool').Pool(pOptions)"),
+                        query: function(q, p, fn) {
+                            adapter.pool.acquire(function(connection) {
+                                connection.query(q, p, fn);
+                            });
+                        }
+                    };
+                    
+                    saffron.MySQL.poolAdapters[key] = adapter;
                 }
                 
-                return pool;
+                return adapter;
             };
         }
         catch(e : Dynamic) {
