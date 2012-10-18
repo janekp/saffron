@@ -141,6 +141,31 @@ class Macros {
         var str = '';
         var type;
         
+        if(_handler.indexOf('.') != -1) {
+            var cc = _handler.split('.');
+            var am = false;
+            
+            _handler = '';
+            
+            for(c in cc) {
+                if(!am) {
+                    _handler += c;
+                    
+                    if(c.charAt(0).toUpperCase() == c.charAt(0)) {
+                        am = true;
+                    } else {
+                        _handler += '.';
+                    }
+                } else if(action != null) {
+                    action = '.' + c;
+                } else {
+                    action = c;
+                }
+            }
+            
+            _ctx = _handler;
+        }
+        
         if(_ctx.endsWith('Page')) {
             _ctx = _ctx.substr(0, _ctx.length - 4);
         } else if(_ctx.endsWith('Handler')) {
@@ -178,17 +203,44 @@ class Macros {
         
         if((i = path.indexOf(':action{')) != -1 && (j = path.indexOf('}', i)) != -1) {
             actions = path.substring(i + 8, j).split(',');
+            j += 1;
+            
+            if(action != null) {
+                var _a = false;
+                
+                for(_action in actions) {
+                    if(_action == action) {
+                        _a = true;
+                        break;
+                    }
+                }
+                
+                if(_a) {
+                    actions = new Array<String>();
+                    actions.push(action);
+                } else {
+                    return Macros.generatePlaceholder();
+                }
+            }
         } else if((i = path.indexOf(':action')) != -1) {
             j = i + 7;
             
             actions = new Array<String>();
-            actions.push('index');
             
-            for(action in _Macros.getMethods(type, false)) {
-                if(action != 'render' && action != 'index') {
-                    actions.push(action);
+            if(action != null) {
+                actions.push(action);
+            } else {
+                actions.push('index');
+                
+                for(action in _Macros.getMethods(type, false)) {
+                    if(action != 'render' && action != 'index') {
+                        actions.push(action);
+                    }
                 }
             }
+        } else if(action != null) {
+            actions = new Array<String>();
+            actions.push(action);
         }
         
         if(actions != null) {
