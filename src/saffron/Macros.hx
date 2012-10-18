@@ -249,7 +249,7 @@ class Macros {
                     str += ';';
                 }
                 
-                str += _Macros.generateHandler(_this, action, (action == 'index') ? path.substr(0, (i > 1 && path.charAt(i - 1) == '/') ? i - 1 : i) : path.substr(0, i) + action + path.substr(j), method, _handler, _auth, _tmpl + ((action != 'index') ? '.' + action : ''), (_Macros.hasField(type, action)) ? action : 'render');
+                str += _Macros.generateHandler(_this, action, (i != -1 && j != -1) ? ((action == 'index') ? path.substr(0, (i > 1 && path.charAt(i - 1) == '/') ? i - 1 : i) : path.substr(0, i) + action + path.substr(j)) : path, method, _handler, _auth, _tmpl + ((action != 'index') ? '.' + action : ''), (_Macros.hasField(type, action)) ? action : 'render');
             }
         } else {
             str = _Macros.generateHandler(_this, action, path, method, _handler, _auth, _tmpl, (_Macros.hasField(type, 'index')) ? 'index' : 'render');
