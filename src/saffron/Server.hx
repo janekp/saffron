@@ -184,7 +184,12 @@ class Server {
                     
                     untyped __js__("for(var key in query) { ctx.query[key] = query[key]; }");
                     
-                    handler(ctx);
+                    try {
+                        handler(ctx);
+                    }
+                    catch(err : Dynamic) {
+                        Environment.crash(err);
+                    }
                 });
             } else if(next != null) {
                 next();
@@ -215,7 +220,12 @@ class Server {
                     ctx.cookies = new Cookies(req, res);
                 }
                 
-                handler(ctx);
+                try {
+                    handler(ctx);
+                }
+                catch(err : Dynamic) {
+                    Environment.crash(err);
+                }
             } else if(next != null) {
                 next();
             } else {
@@ -275,11 +285,7 @@ class Server {
 #end
             
             Node.http.createServer(function(req, res) {
-                try {
-                    this.handleRequest(req, res);
-                }
-                catch(err : Dynamic) {
-                }
+                this.handleRequest(req, res);
             }).listen(port, host);
         }
         
