@@ -138,12 +138,7 @@ class Server {
         }
         
         if(handler != null) {
-            try {
-                handler(req, res, status);
-            }
-            catch(err : Dynamic) {
-                Environment.crash(err);
-            }
+            handler(req, res, status);
         } else {
             res.writeHead((status >= 100 && status < 600) ? status : 500, { 'Content-Type': 'text/html' });
             res.end();
@@ -196,12 +191,7 @@ class Server {
                     
                     untyped __js__("for(var key in query) { ctx.query[key] = query[key]; }");
                     
-                    try {
-                        handler(ctx);
-                    }
-                    catch(err : Dynamic) {
-                        Environment.crash(err);
-                    }
+                    handler(ctx);
                 });
             } else if(next != null) {
                 next();
@@ -232,12 +222,7 @@ class Server {
                     ctx.cookies = new Cookies(req, res);
                 }
                 
-                try {
-                    handler(ctx);
-                }
-                catch(err : Dynamic) {
-                    Environment.crash(err);
-                }
+                handler(ctx);
             } else if(next != null) {
                 next();
             } else {
@@ -253,7 +238,15 @@ class Server {
     public function start(?port : Int, ?host : String) : Connect {
         Server.context = this;
         Data.adapter = this.database;
-        
+
+#if debug
+        Node.process.on('uncaughtException', function(err) {
+            Environment.crash(err, function() {
+                Node.process.exit(1);
+            });
+        });
+#end
+
 #if server
         if(this.client_prefix != null) {
             this.addHandler(this.client_prefix, null, Server.__clientScriptHandler, 'GET', 'none', null, null);

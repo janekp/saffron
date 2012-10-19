@@ -35,7 +35,7 @@ typedef EnvironmentJSON = {
     
 #if debug
 
-    public static inline function crash(err : Dynamic) : Void {
+    public static inline function crash(err : Dynamic, ?fn : Void -> Void) : Void {
 #if !client
         if(err != null) {
             try {
@@ -43,16 +43,16 @@ typedef EnvironmentJSON = {
                 
                 untyped mapstrace.build(err, true, function(result) {
                     trace('\n' + untyped __js__('err.toString()') + ':\n' + mapstrace.stringify(result));
-                    throw err;
+                    if(fn != null) fn(); else throw err;
                 });
             }
             catch(e : Dynamic) {
                 trace("module 'mapstrace' not found/loaded. Install it or remove -debug");
-                throw err;
+                if(fn != null) fn(); else throw err;
             }
         }
 #else
-        throw err;
+        if(fn != null) fn(); else throw err;
 #end
     }
     
