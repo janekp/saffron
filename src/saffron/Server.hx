@@ -140,7 +140,7 @@ class Server {
         if(handler != null) {
             handler(req, res, status);
         } else {
-            res.writeHead((status >= 100 && status < 600) ? status : 500, { "Content-Type": "text/html" });
+            res.writeHead((status >= 100 && status < 600) ? status : 500, { 'Content-Type': 'text/html' });
             res.end();
         }
     }
@@ -175,7 +175,13 @@ class Server {
                     postData += data;
                     
                     if(postData.length > this.max_post_size) {
+                        res.writeHead(413);
+					    res.end();
+					    
+#if debug
                         trace('POST data exceeds the max limit (must: ' + postData.length + ' <= ' + this.max_post_size + ')');
+#end
+                        
                         untyped req.destroy();
                     }
                 });
