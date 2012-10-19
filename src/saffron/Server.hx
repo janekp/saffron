@@ -175,7 +175,8 @@ class Server {
                     postData += data;
                     
                     if(postData.length > this.max_post_size) {
-                        throw 'POST data exceeds the max limit (must: ' + postData.length + ' <= ' + this.max_post_size + ')';
+                        trace('POST data exceeds the max limit (must: ' + postData.length + ' <= ' + this.max_post_size + ')');
+                        untyped req.destroy();
                     }
                 });
                 
