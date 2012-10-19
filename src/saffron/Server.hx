@@ -138,7 +138,12 @@ class Server {
         }
         
         if(handler != null) {
-            handler(req, res, status);
+            try {
+                handler(req, res, status);
+            }
+            catch(err : Dynamic) {
+                Environment.crash(err);
+            }
         } else {
             res.writeHead((status >= 100 && status < 600) ? status : 500, { 'Content-Type': 'text/html' });
             res.end();
