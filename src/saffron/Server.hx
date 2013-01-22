@@ -136,8 +136,6 @@ class Server {
     }
     
     private function removeFiles(files : Array<String>) : Void {
-        trace('remove files');
-        
         for(file in files) {
             if(file != null) {
                 Node.fs.unlink(file, function(err) { });
@@ -200,6 +198,10 @@ class Server {
                     multipart.parse(req, function(err, fields, files) {
                         ctx.fields = fields;
                         ctx.files = files;
+                        
+                        if(fields != null) {
+                            untyped __js__("for(var field in fields) { ctx.query[field] = fields[field]; }");
+                        }
                         
                         if(files != null) {
                             var cleanup = new Array<String>();
