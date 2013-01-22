@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Janek Priimann */
+/* Copyright (c) 2012 - 2013 Janek Priimann */
 
 package saffron;
 
@@ -6,6 +6,7 @@ package saffron;
 
 #if !macro
 import js.Node;
+import saffron.Multipart;
 import saffron.Template;
 #else
 import haxe.macro.Context;
@@ -45,10 +46,14 @@ class Server {
     public var error : NodeHttpServerReq -> NodeHttpServerResp -> Int -> Void = null;
     public var database : Void -> Data.DataAdapter = null;
     public var client_prefix : String = '/index.js';
+    public var multipart : Context -> Bool = null;
     public var max_post_size : Int = 1024 * 16; // 16kib
+    public var max_multipart_size : Int = 1024 * 1024 * 4; // 4 MB
+    public var max_multipart_count : Int = 1; // 1 file
     public var strip_trailing_slash : Bool = true; // /hello/ -> /hello
     public var remote_prefix : String = '/r/';
     public var root : String = null;
+    public var tmp : String = null;
     
     private var errors : Dynamic;
     private var handlers : Dynamic;
@@ -130,6 +135,16 @@ class Server {
         }
     }
     
+    private function removeFiles(files : Array<String>) : Void {
+        trace('remove files');
+        
+        for(file in files) {
+            if(file != null) {
+                Node.fs.unlink(file, function(err) { });
+            }
+        }
+    }
+    
     private function handleError(status : Int, req : NodeHttpServerReq, res : NodeHttpServerResp) : Void {
         var handler : NodeHttpServerReq -> NodeHttpServerResp -> Int -> Void = untyped this.errors[status];
         
@@ -171,28 +186,60 @@ class Server {
                     ctx.cookies = new Cookies(req, res);
                 }
                 
-                req.on('data', function(data) {
-                    postData += data;
+                // Multipart
+                if(this.multipart != null &&
+                    req.headers[untyped 'content-type'] != null &&
+                    req.headers[untyped 'content-type'].indexOf('multipart') == 0 &&
+                    this.multipart(ctx) == true) {
+                    var multipart = new Multipart();
                     
-                    if(postData.length > this.max_post_size) {
-                        res.writeHead(413);
-					    res.end();
-					    
-#if debug
-                        trace('POST data exceeds the max limit (must: ' + postData.length + ' <= ' + this.max_post_size + ')');
-#end
-                        
-                        untyped req.destroy();
+                    if(this.tmp != null) {
+                        multipart.uploadDir = tmp;
                     }
-                });
-                
-                req.on('end', function() {
-                    var query = Node.queryString.parse(postData);
                     
-                    untyped __js__("for(var key in query) { ctx.query[key] = query[key]; }");
+                    multipart.parse(req, function(err, fields, files) {
+                        ctx.fields = fields;
+                        ctx.files = files;
+                        
+                        if(files != null) {
+                            var cleanup = new Array<String>();
+                            var cleanup_func : Void -> Void;
+                            
+                            untyped __js__("for(var file in files) { cleanup.push(files[file].path); }");
+                            cleanup_func = function() { this.removeFiles(cleanup); };
+                            
+                            res.on('error', cleanup_func);
+                            res.on('close', cleanup_func);
+                            res.on('finish', cleanup_func);
+                        }
+                        
+                        handler(ctx);
+                    });
+                // Normal urlencoded post
+                } else {
+                    req.on('data', function(data) {
+                        postData += data;
+                        
+                        if(postData.length > this.max_post_size) {
+                            res.writeHead(413);
+                            res.end();
+                            
+#if debug
+                            trace('POST data exceeds the max limit (must: ' + postData.length + ' <= ' + this.max_post_size + ')');
+#end
+                            
+                            untyped req.destroy();
+                        }
+                    });
                     
-                    handler(ctx);
-                });
+                    req.on('end', function() {
+                        var query = Node.queryString.parse(postData);
+                        
+                        untyped __js__("for(var key in query) { ctx.query[key] = query[key]; }");
+                        
+                        handler(ctx);
+                    });
+                }
             } else if(next != null) {
                 next();
             } else {
@@ -248,6 +295,14 @@ class Server {
 #end
 
 #if server
+        if(this.tmp != null) {
+            this.tmp = Node.path.join(Node.__dirname, this.tmp);
+            
+            if(!Node.fs.existsSync(this.tmp)) {
+                Node.fs.mkdir(this.tmp);
+            }
+        }
+        
         if(this.client_prefix != null) {
             this.addHandler(this.client_prefix, null, Server.__clientScriptHandler, 'GET', 'none', null, null);
             

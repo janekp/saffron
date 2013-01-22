@@ -1,10 +1,11 @@
-/* Copyright (c) 2012 Janek Priimann */
+/* Copyright (c) 2012 - 2013 Janek Priimann */
 
 package saffron;
 
 #if !client
 
 import js.Node;
+import saffron.Multipart;
 
 typedef ContextUrl = NodeUrlObj;
 
@@ -15,6 +16,8 @@ typedef Context = { > ContextUrl,
     var token : Dynamic;
     var request : NodeHttpServerReq;
     var response : NodeHttpServerResp;
+    var fields : MultipartFields;
+    var files : MultipartFiles;
 }
 
 #else
