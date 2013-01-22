@@ -12,6 +12,10 @@ class IndexPage extends Page {
     public function upload() : Void {
         var file = (this._ctx.files != null) ? this._ctx.files.get('upload') : null;
         
-        this.render({ path: (file != null) ? file.path : '--', size: (file != null) ? file.size : 0 });
+        this.render({
+            title: (this._ctx.fields != null) ? this._ctx.fields.get('title') : '--',
+            path: (file != null) ? file.path : '--',
+            size: (file != null) ? file.size : 0
+        });
     }
 }
