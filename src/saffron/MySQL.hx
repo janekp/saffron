@@ -59,13 +59,7 @@ extern class MySQL {
 				                    fn(err, null);
 				                } else {
 				                    connection.query(q, p, function(err, result) {
-                                        try {
-                                            fn(err, result);
-                                            
-                                        } catch(e : Dynamic) {
-                                            Environment.crash(e);
-                                        }
-                                        __js__("finally { adapter.pool.release(connection); }");
+                                        __js__("try { fn(err, result); } finally { adapter.pool.release(connection); }");
                                     });
                                 }
                             });
