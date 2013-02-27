@@ -21,7 +21,7 @@ private typedef ServerRemoteHandler = {
 
 class Server {
 
-    @:macro public function config(ethis : Expr, key : Expr, value : Expr) : Expr {
+    macro public function config(ethis : Expr, key : Expr, value : Expr) : Expr {
         var k = Macros.stringify(key);
         var s : Expr = {
             expr : EField(ethis, k), 
@@ -31,11 +31,11 @@ class Server {
         return macro $s = $value;
     }
     
-    @:macro public function get(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
+    macro public function get(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
         return Macros.generateHandler(ethis, action, 'GET', handler, auth);
     }
     
-    @:macro public function post(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
+    macro public function post(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
         return Macros.generateHandler(ethis, action, 'POST', handler, auth);
     }
     

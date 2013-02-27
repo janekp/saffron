@@ -6,6 +6,8 @@ package saffron;
 
 import js.Node;
 
+#end
+
 typedef MultipartFile = {
     public var size : Int;
     public var name : String;
@@ -28,6 +30,8 @@ typedef MultipartFile = {
         return untyped this[name];
     }
 }
+
+#if !client
 
 typedef MultipartPart = {
     public var filename : String;

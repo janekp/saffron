@@ -9,7 +9,7 @@ import haxe.macro.Expr;
 
 @:require(client) class Client {
     
-    @:macro public function config(ethis : Expr, key : Expr, value : Expr) : Expr {
+    macro public function config(ethis : Expr, key : Expr, value : Expr) : Expr {
         var k = Macros.stringify(key);
         
         if(k == 'client_prefix' || k == 'remote_prefix' || k == 'strip_trailing_slash') {
@@ -24,15 +24,15 @@ import haxe.macro.Expr;
         return Macros.generatePlaceholder();
     }
     
-    @:macro public function get(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
+    macro public function get(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
         return Macros.generateHandler(ethis, action, 'GET', handler, auth);
     }
     
-    @:macro public function post(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
+    macro public function post(ethis : Expr, action : String, handler : Expr, ?auth : Expr) : Expr {
         return Macros.generatePlaceholder();
     }
     
-    @:macro public function start(ethis : Expr, ?port : ExprOf<Int>, ?host : ExprOf<String>) : Expr {
+    macro public function start(ethis : Expr, ?port : ExprOf<Int>, ?host : ExprOf<String>) : Expr {
         return macro $ethis.run();
     }
     

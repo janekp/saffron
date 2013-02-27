@@ -4,22 +4,22 @@ package saffron;
 
 #if macro
 
-typedef StdType = Type;
-
 import haxe.macro.Compiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import haxe.macro.Type;
 
-import neko.FileSystem;
-import neko.io.File;
+import sys.FileSystem;
+import sys.io.File;
 
 using StringTools;
 
+typedef MacroType = haxe.macro.Type;
+typedef ClassType = haxe.macro.Type.ClassType;
+
 private class _Macros {
-    public static function typeToClass(t : Type) : ClassType {
+    public static function typeToClass(t : MacroType) : ClassType {
         switch(t) {
-            case TInst(ct, params):
+            case TInst(ct, _params):
                 return ct.get();
             default:
         }
@@ -50,7 +50,7 @@ private class _Macros {
         
         if(type != null) {
             for(field in type.fields.get()) {
-                if((ip == true || field.isPublic == true) && StdType.enumEq(field.kind, FMethod(MethNormal))) {
+                if((ip == true || field.isPublic == true) && Type.enumEq(field.kind, FMethod(MethNormal))) {
                     r.push(field.name);
                 }
             }
@@ -258,33 +258,33 @@ class Macros {
         return Context.parse('{' + str + ';}', Context.currentPos());
     }
     
-    private static var remoteDataHandlers : Hash<Bool> = null;
+    private static var remoteDataHandlers : Map<String, Bool> = null;
     
     public static function generateDataQuery(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
 #if client
-        var _q = { expr: EConst(CString(haxe.SHA1.encode(q))), pos: Context.currentPos() };
+        var _q = { expr: EConst(CString(haxe.crypto.Sha1.encode(q))), pos: Context.currentPos() };
 #else
         var _q = { expr: EConst(CString(q)), pos: Context.currentPos() };
 #end
         
-        if(switch(p.expr) { case EFunction(name, f): true; default: false; }) {
+        if(switch(p.expr) { case EFunction(_name, _f): true; default: false; }) {
             fn = p;
             p = { expr: EConst(CIdent('null')), pos: Context.currentPos() };
         }
         
 #if server
-        var id = haxe.SHA1.encode(q);
+        var id = haxe.crypto.Sha1.encode(q);
         var file = Compiler.getOutput() + '.calls';
-        var fout = (Macros.remoteDataHandlers == null) ? neko.io.File.write(file, false) : neko.io.File.append(file, false);
+        var fout = (Macros.remoteDataHandlers == null) ? File.write(file, false) : File.append(file, false);
         
         if(Macros.remoteDataHandlers == null) {
-            Macros.remoteDataHandlers = new Hash<Bool>();
+            Macros.remoteDataHandlers = new Map<String, Bool>();
         }
         
         if(!Macros.remoteDataHandlers.get(id)) {
             var a = null;
             
-            if(switch(p.expr) { case EConst(c): false; default: true; }) {
+            if(switch(p.expr) { case EConst(_c): false; default: true; }) {
                 // TODO: Temporary
                 a = 'I';
             }

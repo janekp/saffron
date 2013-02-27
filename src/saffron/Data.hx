@@ -36,24 +36,24 @@ typedef DataAdapter = {
 }
 
 class Data {
-    @:macro public static function query(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+    macro public static function query(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataQuery(ctx, q, p, fn);
     }
     
-    @:macro public static function subscribe(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+    macro public static function subscribe(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataSubscribe(ctx, q, p, fn);
     }
     
-    @:macro public static function unsubscribe(ctx : Expr, ?q : String, ?p : Expr, ?fn : Expr) : Expr {
+    macro public static function unsubscribe(ctx : Expr, ?q : String, ?p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataUnsubscribe(ctx, q, p, fn);
     }
     
-    @:macro public static function push(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+    macro public static function push(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataPush(ctx, q, p, fn);
     }
     
 #if server
-    @:macro private static function clearRemoteHandlers() : Expr {
+    macro private static function clearRemoteHandlers() : Expr {
         return Macros.clearRemoteHandlers();
     }
 #end

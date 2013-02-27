@@ -17,7 +17,7 @@ import haxe.macro.Expr;
 
 class Handler {
     
-    @:macro public function query(ethis : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+    macro public function query(ethis : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataQuery(ethis, q, p, fn);
     }
     
@@ -54,7 +54,11 @@ class Handler {
     }
     
     private inline function isPost() : Bool {
+#if client
+        return false;
+#else
         return (this._ctx.request.method == 'POST') ? true : false;
+#end
     }
 #end
 }

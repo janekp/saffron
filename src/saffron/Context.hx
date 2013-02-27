@@ -2,10 +2,11 @@
 
 package saffron;
 
+import saffron.Multipart;
+
 #if !client
 
 import js.Node;
-import saffron.Multipart;
 
 typedef ContextUrl = NodeUrlObj;
 
@@ -43,6 +44,8 @@ typedef Context = { > ContextUrl,
     var resume : Void -> Void;
     var pause : Void -> Void;
     var destroy : Void -> Void;
+    var fields : MultipartFields;
+    var files : MultipartFiles;
 }
 
 #end

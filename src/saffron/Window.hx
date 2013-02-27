@@ -3,6 +3,6 @@
 package saffron;
 
 @:require(client) @:native("window") extern class Window {
-    public static var location : js.Dom.Location;
-    public static var onload : js.Dom.Event -> Void;
+    public static var location : js.html.Location;
+    public static var onload : js.html.Event -> Void;
 }
