@@ -2,7 +2,7 @@
 SRC_DIR=src
 DST_DIR=build
 MAIN_CLASS=Application
-CFLAGS=--dead-code-elimination
+CFLAGS=-dce full
 DEBUG=
 
 all: DEBUG = -debug
