@@ -258,6 +258,17 @@ class Macros {
         return Context.parse('{' + str + ';}', Context.currentPos());
     }
     
+    public static function generateAsync(ethis : Expr, fn : Expr, parallel : Bool, nextTick : Bool) : Expr {
+        if(parallel || nextTick) {
+            var _p = { expr: EConst(CIdent((parallel) ? 'true' : 'false')), pos: Context.currentPos() };
+            var _n = { expr: EConst(CIdent((nextTick) ? 'true' : 'false')), pos: Context.currentPos() };
+            
+            return macro saffron.Async.context($ethis._ctx.async).begin($fn, $_p, $_n);
+        }
+        
+        return macro saffron.Async.context($ethis._ctx.async).begin($fn);
+    }
+    
     private static var remoteDataHandlers : Map<String, Bool> = null;
     
     public static function generateDataQuery(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {

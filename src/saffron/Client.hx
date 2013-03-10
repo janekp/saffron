@@ -129,6 +129,10 @@ import haxe.macro.Expr;
         }());
         ctx.hash = untyped a.hash.replace('#', '');
         
+        if(untyped __js__('saffron.Async')) {
+            ctx.async = untyped __js__('new saffron.Async()');
+        }
+        
         return ctx;
     }
     

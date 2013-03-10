@@ -19,6 +19,7 @@ typedef Context = { > ContextUrl,
     var response : NodeHttpServerResp;
     var fields : MultipartFields;
     var files : MultipartFiles;
+    var async : Dynamic;
 }
 
 #else
@@ -46,6 +47,7 @@ typedef Context = { > ContextUrl,
     var destroy : Void -> Void;
     var fields : MultipartFields;
     var files : MultipartFiles;
+    var async : Dynamic;
 }
 
 #end

@@ -174,6 +174,10 @@ class Server {
             ctx.query = { };
         }
         
+        if(untyped __js__('saffron.Async')) {
+            ctx.async = untyped __js__('new saffron.Async()');
+        }
+        
         if(req.method == 'POST') {
             var postData = '';
             
