@@ -263,10 +263,10 @@ class Macros {
             var _p = { expr: EConst(CIdent((parallel) ? 'true' : 'false')), pos: Context.currentPos() };
             var _n = { expr: EConst(CIdent((nextTick) ? 'true' : 'false')), pos: Context.currentPos() };
             
-            return macro saffron.Async.context($ethis._ctx.async).begin($fn, $_p, $_n);
+            return macro saffron.Async.AsyncContext.context($ethis._ctx).async($fn, $_p, $_n);
         }
         
-        return macro saffron.Async.context($ethis._ctx.async).begin($fn);
+        return macro saffron.Async.AsyncContext.context($ethis._ctx).async($fn);
     }
     
     private static var remoteDataHandlers : Map<String, Bool> = null;

@@ -2,6 +2,16 @@
 
 package saffron;
 
+extern class AsyncContext {
+    public static inline function context(ctx : Dynamic) : AsyncContext {
+        return ctx;
+    }
+    
+    @:overload(function(fn : (?Dynamic -> Void) -> Dynamic -> Void, ?parallel : Bool, ?nextTick : Bool) : Async {})
+    @:overload(function(fn : (?Dynamic -> Void) -> Void, ?parallel : Bool, ?nextTick : Bool) : Async {})
+    public function async(fn : Void -> Void, ?parallel : Bool, ?nextTick : Bool) : Async;
+}
+
 extern class Async {
     public function new();
     
