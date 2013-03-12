@@ -34,7 +34,7 @@ class Handler {
     
     private inline function error(?status : Int) : Void {
 #if !client
-        untyped Server.context.handleError((status != null) ? status : 500, this._ctx.request, this._ctx.response);
+        untyped Server.context.handleError((status != null) ? status : 500, this._ctx);
 #else
         // TODO: 
 #end

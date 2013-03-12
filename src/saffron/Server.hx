@@ -43,7 +43,7 @@ class Server {
     public static var context : Server = null;
     
     public var auth : Context -> (Dynamic -> Int -> Void) -> Void = null;
-    public var error : NodeHttpServerReq -> NodeHttpServerResp -> Int -> Void = null;
+    public var error : Context -> Int -> Void = null;
     public var database : Void -> Data.DataAdapter = null;
     public var client_prefix : String = '/index.js';
     public var multipart : Context -> Bool = null;
@@ -67,7 +67,7 @@ class Server {
         this.routes = { };
     }
     
-    public function addError(status : Int, fn : NodeHttpServerReq -> NodeHttpServerResp -> Void) : Void {
+    public function addError(status : Int, fn : Context -> Void) : Void {
         untyped this.errors[status] = fn;
     }
     
@@ -92,11 +92,11 @@ class Server {
                         if(token != null) {
                             handler(ctx);
                         } else {
-                            this.handleError((err != null) ? err : 403, ctx.request, ctx.response);
+                            this.handleError((err != null) ? err : 403, ctx);
                         }
                     });
                 } else {
-                    this.handleError(403, ctx.request, ctx.response);
+                    this.handleError(403, ctx);
                 }
             };
         } else if(auth == 'auth_optional') {
@@ -143,18 +143,18 @@ class Server {
         }
     }
     
-    private function handleError(status : Int, req : NodeHttpServerReq, res : NodeHttpServerResp) : Void {
-        var handler : NodeHttpServerReq -> NodeHttpServerResp -> Int -> Void = untyped this.errors[status];
+    private function handleError(status : Int, ctx : Context) : Void {
+        var handler : Context -> Int -> Void = untyped this.errors[status];
         
         if(handler == null) {
             handler = untyped this.error;
         }
         
         if(handler != null) {
-            handler(req, res, status);
+            handler(ctx, status);
         } else {
-            res.writeHead((status >= 100 && status < 600) ? status : 500, { 'Content-Type': 'text/html' });
-            res.end();
+            ctx.response.writeHead((status >= 100 && status < 600) ? status : 500, { 'Content-Type': 'text/html' });
+            ctx.response.end();
         }
     }
     
@@ -249,7 +249,7 @@ class Server {
             } else if(next != null) {
                 next();
             } else {
-                this.handleError(404, req, res);
+                this.handleError(404, ctx);
             }
         } else if(req.method == 'OPTIONS') {
             var hasGet = (this.findHandler(this.handlers_static[untyped 'GET'], this.handlers[untyped 'GET'], ctx) != null) ? true : false;
@@ -279,12 +279,12 @@ class Server {
             } else if(next != null) {
                 next();
             } else {
-                this.handleError(404, req, res);
+                this.handleError(404, ctx);
             }
         } else if(next != null) {
             next();
         } else {
-            this.handleError(405, req, res);
+            this.handleError(405, ctx);
         }
     }
     
