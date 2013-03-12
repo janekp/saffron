@@ -42,7 +42,7 @@ class Server {
 #if !macro
     public static var context : Server = null;
     
-    public var auth : Context -> (Dynamic -> Int -> Void) -> Void = null;
+    public var auth : Context -> String -> (Dynamic -> Int -> Void) -> Void = null;
     public var error : Context -> Int -> Void = null;
     public var database : Void -> Data.DataAdapter = null;
     public var client_prefix : String = '/index.js';
@@ -71,7 +71,7 @@ class Server {
         untyped this.errors[status] = fn;
     }
     
-    public function addHandler(path : String, regex : String, handler : Context.ContextHandler, method : String, auth : String, key : String, value : String) : Void {
+    public function addHandler(path : String, regex : String, handler : Context.ContextHandler, method : String, auth : String, permission : String, key : String, value : String) : Void {
         var r : Environment.EnvironmentRegExp = (regex != null) ? new Environment.EnvironmentRegExp(regex, "g") : null;
         var h : Context.ContextHandler;
         
@@ -86,7 +86,7 @@ class Server {
         if(auth == 'auth_required') {
             h = function(ctx) {
                 if(this.auth != null) {
-                    this.auth(ctx, function(token, err) {
+                    this.auth(ctx, permission, function(token, err) {
                         ctx.token = token;
                         
                         if(token != null) {
@@ -102,7 +102,7 @@ class Server {
         } else if(auth == 'auth_optional') {
             h = function(ctx) {
                 if(this.auth != null) {
-                    this.auth(ctx, function(token, err) {
+                    this.auth(ctx, permission, function(token, err) {
                         ctx.token = token;
                         handler(ctx);
                     });
@@ -310,16 +310,16 @@ class Server {
         }
         
         if(this.client_prefix != null) {
-            this.addHandler(this.client_prefix, null, Server.__clientScriptHandler, 'GET', 'none', null, null);
+            this.addHandler(this.client_prefix, null, Server.__clientScriptHandler, 'GET', 'none', null, null, null);
             
 #if debug
-            this.addHandler(this.client_prefix + '.map', null, Server.__clientScriptMapHandler, 'GET', 'none', null, null);
+            this.addHandler(this.client_prefix + '.map', null, Server.__clientScriptMapHandler, 'GET', 'none', null, null, null);
 #end
         }
         
         if(this.remote_prefix != null && Server.__remoteHandlers != null) {
             for(handler in Server.__remoteHandlers) {
-                this.addHandler(this.remote_prefix + handler.id, null, Server.__remoteHandler(handler), 'POST', 'none', null, null);
+                this.addHandler(this.remote_prefix + handler.id, null, Server.__remoteHandler(handler), 'POST', 'none', null, null, null);
             }
         }
 #end

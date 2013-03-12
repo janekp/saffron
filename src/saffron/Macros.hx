@@ -59,7 +59,7 @@ private class _Macros {
         return (type.superClass != null) ? _Macros.getMethods(type.superClass.t.get(), ip, r) : r;
     }
     
-    public static function generateHandler(ethis : String, orig : String, path : String, method : String, handler : String, auth : String, tmpl : String, action : String) {
+    public static function generateHandler(ethis : String, orig : String, path : String, method : String, handler : String, auth : String, perm : String, tmpl : String, action : String) {
         var i = path.indexOf(':id');
         var j = path.indexOf('*');
         var path_r = path;
@@ -97,7 +97,7 @@ private class _Macros {
             "var __obj = new " + handler + "(ctx);" +
             "if(ctx.template == null) { ctx.template = \"" + tmpl + "\"; __obj." + action + "(" + id + "); }" +
 #end
-        "}, \"" + method + "\", \"" + auth + "\", \"" +
+        "}, \"" + method + "\", \"" + auth + "\", " + ((perm != null) ? "\"" + perm + "\"" : 'null') + ", \"" +
             handler + ((orig == 'index') ? '' : "." + action) + ((id != '') ? ':id' : '') + "\", \"" + path_r + "\")";
     }
 }
@@ -116,6 +116,20 @@ class Macros {
             case EField(c, f): {
                 return Macros.stringify(c) + '.' + f;
             };
+            case ECall(c, _params): {
+                return Macros.stringify(c);
+            };
+            default:
+        }
+        
+        return null;
+    }
+    
+    public static function stringifyInnerExpr(e : Expr) : String {
+        switch(e.expr) {
+            case ECall(_n, params): {
+                return Macros.stringify(params[0]);
+            };
             default:
         }
         
@@ -132,6 +146,7 @@ class Macros {
     
     public static function generateHandler(ethis : Expr, path : String, method : String, handler : Expr, auth : Expr) : Expr {
         var _auth = Macros.stringify(auth);
+        var _perm = (_auth == 'auth_required' || _auth == 'auth_optional') ? Macros.stringifyInnerExpr(auth) : null;
         var _handler = Macros.stringify(handler);
         var _this = Macros.stringify(ethis);
         var action, actions = null;
@@ -249,10 +264,10 @@ class Macros {
                     str += ';';
                 }
                 
-                str += _Macros.generateHandler(_this, action, (i != -1 && j != -1) ? ((action == 'index') ? path.substr(0, (i > 1 && path.charAt(i - 1) == '/') ? i - 1 : i) : path.substr(0, i) + action + path.substr(j)) : path, method, _handler, _auth, _tmpl + ((action != 'index') ? '.' + action : ''), (_Macros.hasField(type, action)) ? action : 'render');
+                str += _Macros.generateHandler(_this, action, (i != -1 && j != -1) ? ((action == 'index') ? path.substr(0, (i > 1 && path.charAt(i - 1) == '/') ? i - 1 : i) : path.substr(0, i) + action + path.substr(j)) : path, method, _handler, _auth, _perm, _tmpl + ((action != 'index') ? '.' + action : ''), (_Macros.hasField(type, action)) ? action : 'render');
             }
         } else {
-            str = _Macros.generateHandler(_this, action, path, method, _handler, _auth, _tmpl, (_Macros.hasField(type, 'index')) ? 'index' : 'render');
+            str = _Macros.generateHandler(_this, action, path, method, _handler, _auth, _perm, _tmpl, (_Macros.hasField(type, 'index')) ? 'index' : 'render');
         }
         
         return Context.parse('{' + str + ';}', Context.currentPos());
