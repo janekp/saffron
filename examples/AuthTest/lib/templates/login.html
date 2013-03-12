@@ -1,0 +1,15 @@
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Sign-in (password: 'abc')</h1>
+    <form id="login" action="/login" method="post">
+        Username: <input type="text" name="username" id="username" value="{user}" /><br />
+        Password: <input type="password" name="password" id="password" /><br />
+        <input type="hidden" name="state" value="{state}" />
+        <input type="submit" value="Login" />
+    </form>
+    <h1>{error}</h1>
+</body>
+</html>
