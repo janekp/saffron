@@ -53,7 +53,7 @@ import haxe.macro.Expr;
         this.routes = { };
     }
     
-    public function addHandler(path : String, regex : String, handler : Context.ContextHandler, method : String, auth : String, key : String, value : String) : Void {
+    public function addHandler(path : String, regex : String, handler : Context.ContextHandler, method : String, auth : String, permission : String, key : String, value : String) : Void {
         var r : Environment.EnvironmentRegExp = (regex != null) ? new Environment.EnvironmentRegExp(regex, "g") : null;
         var h : Context.ContextHandler = handler;
         
