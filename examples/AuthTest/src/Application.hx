@@ -8,7 +8,7 @@ import saffron.Server;
 import saffron.Template;
 
 class Application {
-    public static function auth(ctx : Context, fn : Dynamic -> Int -> Void) : Void {
+    public static function auth(ctx : Context, permission : Dynamic, fn : Dynamic -> Int -> Void) : Void {
         if(ctx.cookies != null) {
             var session = ctx.cookies.get('session');
             
@@ -35,7 +35,7 @@ class Application {
         
         // Routes
         server.get('/', IndexPage, auth_required);
-        server.get('/test', IndexPage, auth_required);
+        server.get('/test', IndexPage, auth_required('com.whatever.err'));
         server.get('/login', LoginPage.login);
         server.post('/login', LoginPage.login);
         server.get('/logout', LoginPage.logout);
