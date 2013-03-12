@@ -8,17 +8,15 @@ import saffron.Server;
 import saffron.Template;
 
 class Application {
-    public static function auth(ctx : Context, permission : Dynamic, fn : Dynamic -> Int -> Void) : Void {
-        if(ctx.cookies != null) {
-            var session = ctx.cookies.get('session');
-            
-            if(session != null) {
-                // Validate the session here
-                fn(session, null);
-            }
-        }
+    public static function auth(ctx : Context, permission : String, fn : Dynamic -> Int -> Void) : Void {
+        var session = ctx.cookies.get('session');
         
-        fn(null, 403);
+        if(session != null) {
+            // Validate the session here
+            fn(session, null);
+        } else {
+            fn(null, 403);
+        }
     }
     
     public static function login(ctx : Context) : Void {
