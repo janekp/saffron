@@ -4,6 +4,7 @@ package;
 
 import js.Node;
 import saffron.Context;
+import saffron.Locale;
 import saffron.Server;
 import saffron.Template;
 
@@ -25,6 +26,9 @@ class Application {
     
     public static function main() {
         var server = new Server();
+        
+        // Locale
+        Locale.register('en', { 'username': 'Username', 'password': 'Password' });
         
         // Config
         server.config(auth, Application.auth);
