@@ -14,7 +14,7 @@ class Locale {
         Locale.strings[untyped code] = untyped strings;
     }
     
-    public static function get(key : String) : String {
+    public static function str(key : String) : String {
         var value = null;
         
         if(key != null) {
@@ -25,6 +25,6 @@ class Locale {
             }
         }
         
-        return (value != null) ? value : key;
+        return (value != null) ? value : ((key != null) ? key : '');
     }
 }

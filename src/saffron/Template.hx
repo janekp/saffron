@@ -109,6 +109,17 @@ extern class Template {
                 });
             };
 #end
+            
+            if(saffron.Locale != null) {
+                if(saffron.Template.helpers == null) {
+                    saffron.Template.helpers = { };
+                }
+                
+                saffron.Template.filters.L = Locale.str;
+                saffron.Template.helpers.localize = function(chunk, ctx, bodies, params) {
+                    return chunk.write(Locale.str(params.str));
+                };
+            }
         }
         catch(e : Dynamic) {
         }
