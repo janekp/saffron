@@ -6,6 +6,8 @@ package saffron;
 import js.Node;
 #end
 
+import saffron.Template;
+
 class Page extends Handler {
     public function render(?params : Dynamic, ?template : String, ?status : Int) : Void {
 #if !client
@@ -15,16 +17,47 @@ class Page extends Handler {
 #else
             var ctx = Template.makeBase((params != null) ? params : this);
 #end
+            var layout = this.layout();
+            
+            if(template == null) {
+                template = this._ctx.template;
+            }
             
             this._ctx.response.writeHead((status != null) ? status : 200, { "Content-Type": "text/html" });
-            Template.stream(((template != null) ? template : this._ctx.template) + '.html', ctx).pipe(this._ctx.response);
+            
+            if(layout != null) {
+                Template.stream(layout + '.html', Template.makeBase({
+#if server
+                    saffron: Server.__generateClientScript,
+#end
+                    body: function(chunk : TemplateChunk, _ctx : TemplateContext) : TemplateChunk {
+                        return chunk.partial(template + '.html', ctx);
+                    }
+                })).pipe(this._ctx.response);
+            } else {
+                Template.stream(template + '.html', ctx).pipe(this._ctx.response);
+            }
+            
             this._ctx.template = null;
         }
 #else
         if(this._ctx.template != null) {
-            Template.render(((template != null) ? template : this._ctx.template) + '.html', (params != null) ? params : this, function(err, html) {
-                untyped document.body.innerHTML = html;
-            });
+            var layout = this.layout();
+            
+            if(layout != null) {
+                Template.render(layout + '.html', Template.makeBase({
+                    body: function(chunk : TemplateChunk, _ctx : TemplateContext) : TemplateChunk {
+                        return chunk.partial(template + '.html', (params != null) ? params : this);
+                    }
+                }), function(err, html) {
+                    untyped document.body.innerHTML = html;
+                });
+            } else {
+                Template.render(template + '.html', (params != null) ? params : this, function(err, html) {
+                    untyped document.body.innerHTML = html;
+                });
+            }
+                        
             this._ctx.template = null;
         }
 #end

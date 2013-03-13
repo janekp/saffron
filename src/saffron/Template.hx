@@ -18,6 +18,7 @@ typedef TemplateStream = { }
 
 typedef TemplateChunk = {
     function render(name : String, context : Dynamic) : TemplateChunk;
+    function partial(name : String, context : Dynamic) : TemplateChunk;
     function write(data : Dynamic) : TemplateChunk;
     function map(fn : TemplateChunk -> Void) : TemplateChunk;
     function end(?data : Dynamic) : TemplateChunk;
