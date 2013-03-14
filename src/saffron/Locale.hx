@@ -3,8 +3,9 @@
 package saffron;
 
 class Locale {
+    public static var code : String = null;
+    
     private static var strings : Dynamic = { };
-    private static var code : String = null;
     
     public static function register(code : String, strings : Dynamic) : Void {
         if(Locale.code == null) {

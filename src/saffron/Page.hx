@@ -10,6 +10,10 @@ import saffron.Template;
 
 class Page extends Handler {
     public function render(?params : Dynamic, ?template : String, ?status : Int) : Void {
+        if(template == null) {
+            template = this._ctx.template;
+        }
+        
 #if !client
         if(this._ctx.template != null) {
 #if server
@@ -18,10 +22,6 @@ class Page extends Handler {
             var ctx = Template.makeBase((params != null) ? params : this);
 #end
             var layout = this.layout();
-            
-            if(template == null) {
-                template = this._ctx.template;
-            }
             
             this._ctx.response.writeHead((status != null) ? status : 200, { "Content-Type": "text/html" });
             
@@ -32,7 +32,10 @@ class Page extends Handler {
 #end
                     body: function(chunk : TemplateChunk, _ctx : TemplateContext) : TemplateChunk {
                         return chunk.partial(template + '.html', ctx);
-                    }
+                    },
+                    context: this._ctx,
+                    language: Locale.code,
+                    template: template
                 })).pipe(this._ctx.response);
             } else {
                 Template.stream(template + '.html', ctx).pipe(this._ctx.response);
@@ -48,7 +51,10 @@ class Page extends Handler {
                 Template.render(layout + '.html', Template.makeBase({
                     body: function(chunk : TemplateChunk, _ctx : TemplateContext) : TemplateChunk {
                         return chunk.partial(template + '.html', (params != null) ? params : this);
-                    }
+                    },
+                    context: this._ctx,
+                    language: Locale.code,
+                    template: template
                 }), function(err, html) {
                     untyped document.body.innerHTML = html;
                 });
