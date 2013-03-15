@@ -17,11 +17,15 @@ class Page extends Handler {
 #if !client
         if(this._ctx.template != null) {
 #if server
-            var ctx = Template.makeBase({ saffron: Server.__generateClientScript }).push((params != null) ? params : this);
+            var ctx = Template.makeBase({ saffron: Server.__generateClientScript }).push(this);
 #else
-            var ctx = Template.makeBase((params != null) ? params : this);
+            var ctx = Template.makeBase(this);
 #end
             var layout = this.layout();
+            
+            if(params != null) {
+                ctx = ctx.push(params);
+            }
             
             this._ctx.response.writeHead((status != null) ? status : 200, { "Content-Type": "text/html" });
             
@@ -59,7 +63,7 @@ class Page extends Handler {
                     untyped document.body.innerHTML = html;
                 });
             } else {
-                Template.render(template + '.html', (params != null) ? params : this, function(err, html) {
+                Template.render(template + '.html', (params != null) ? Template.makeBase(this).push(params) : Template.makeBase(this), function(err, html) {
                     untyped document.body.innerHTML = html;
                 });
             }

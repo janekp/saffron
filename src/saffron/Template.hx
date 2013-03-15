@@ -139,6 +139,7 @@ extern class Template {
         
         __js__("saffron.Template = { }");
         __js__("saffron.Template.onLoad = onTemplateLoad");
+        __js__("window.__saffron = saffron.Template");
 #end
     }
 }

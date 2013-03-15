@@ -454,12 +454,12 @@ class Server {
         }
         
         if(Template.templates != null) {
-            ctx.response.write('\nsaffron.Template.templates = {');
+            ctx.response.write('\n__saffron.templates = {');
             untyped __js__("for(var key in saffron.Template.templates) { ctx.response.write('\"' + key + '\": ' + JSON.stringify(saffron.Template.templates[key]) + ','); }\n");
             ctx.response.write('};');
         }
         
-        ctx.response.end('\ndust.onLoad = saffron.Template.onLoad;\ndust.ready = true;');
+        ctx.response.end('\ndust.onLoad = __saffron.onLoad;\ndust.ready = true;');
     }
 #end
     
