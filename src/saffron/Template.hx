@@ -72,6 +72,7 @@ extern class Template {
 #if !client
         try {
             saffron.Template = Node.require('dustjs-linkedin');
+            try { saffron.Template.helper = Node.require('dustjs-helpers'); } catch(e : Dynamic) { }
             
 #if server
             saffron.Template.onLoad = function(name, fn) {
