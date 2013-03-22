@@ -2,7 +2,6 @@
 
 package;
 
-import saffron.Page;
 import saffron.Template;
 import saffron.Widget;
 import saffron.widgets.*;
@@ -89,7 +88,7 @@ class IndexPage extends Page {
             if(choice == null) {
                 choice = new MultiChoiceButton(id);
             }
-            
+            var p = new Layout(null);
             choice.setAdapter([
                 { key: 'Item #1', value: 'a' },
                 { key: 'Item #2', value: 'b' },
