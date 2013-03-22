@@ -9,8 +9,6 @@ import js.Node;
 import saffron.Template;
 
 class Page extends Handler {
-    private var state : Dynamic;
-    
     public function render(?params : Dynamic, ?template : String, ?status : Int) : Void {
         if(template == null) {
             template = this._ctx.template;
@@ -73,27 +71,6 @@ class Page extends Handler {
             this._ctx.template = null;
         }
 #end
-    }
-    
-    private function findWidgetById(id : String, ?fn : Dynamic -> String -> Widget) : Dynamic {
-        var widget;
-        
-        if(id == null) {
-            return null;
-        }
-        
-        if(this.state == null) {
-            this.state = { _w: { } };
-        }
-        
-        widget = this.state._w[untyped id];
-        
-        if(widget == null && fn != null) {
-            widget = fn(null, id);
-            this.state._w[untyped id] = widget;
-        }
-        
-        return widget;
     }
     
     private function layout() : String {
