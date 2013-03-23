@@ -47,7 +47,7 @@ class Navigation extends Widget {
     }
     
     public override function render(chunk : TemplateChunk) : TemplateChunk {
-        chunk = chunk.write('<ul id="' + this.getId() + '" class="navigation">');
+        chunk = chunk.write('<ul' + Utils.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="navigation">');
         
         if(this.items != null) {
             var i = 0, c = this.items.length, s = this.getSelectedIndex();
