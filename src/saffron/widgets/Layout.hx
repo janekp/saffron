@@ -87,7 +87,7 @@ class Layout extends Container {
             klass = klass + ' right';
         }
         
-        chunk = chunk.write('<div id="' + this.getId() + '" class="' + klass + '">');
+        chunk = chunk.write('<div' + Utils.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="' + klass + '">');
         
         if(this.children != null) {
             for(child in this.children) {
