@@ -54,6 +54,7 @@ class Server {
     public var remote_prefix : String = '/r/';
     public var root : String = null;
     public var tmp : String = null;
+    public var name : String = null;
     
     private var errors : Dynamic;
     private var handlers : Dynamic;
@@ -291,7 +292,17 @@ class Server {
     public function start(?port : Int, ?host : String) : Connect {
         Server.context = this;
         Data.adapter = this.database;
-
+        
+        if(this.name != null) {
+            if(Template != null) {
+                Template.srcRoot = Template.srcRoot + this.name + '/';
+            }
+            
+            if(this.root != null) {
+                this.root = Node.path.join(this.root, this.name);
+            }
+        }
+        
 #if debug
         Node.process.on('uncaughtException', function(err) {
             Environment.crash(err, function() {

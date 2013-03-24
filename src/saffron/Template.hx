@@ -66,6 +66,8 @@ extern class Template {
     public static function makeBase(base : Dynamic) : TemplateContext;
     
     public static var templates : Dynamic;
+    public static var srcRoot : String;
+    
     private static var ready : Bool;
     
     private static function __init__() : Void untyped {
@@ -73,26 +75,27 @@ extern class Template {
         try {
             saffron.Template = Node.require('dustjs-linkedin');
             try { saffron.Template.helper = Node.require('dustjs-helpers'); } catch(e : Dynamic) { }
+            saffron.Template.srcRoot = 'templates/';
             
 #if server
             saffron.Template.onLoad = function(name, fn) {
-                var data = saffron.Template.templates['templates/' + name];
+                var data = saffron.Template.templates[saffron.Template.srcRoot + name];
                 
                 if(data != null) {
                     fn(null, data);
                 } else {
-                    trace("ERROR: Could not load template at 'templates/" + name + '"');
+                    trace("ERROR: Could not load template at '" + saffron.Template.srcRoot + name + '"');
                     fn(null, '');
                 }
             };
             
             saffron.Template.templates = (function() : Dynamic {
                 var templates : Dynamic = { };
-                var files = Node.fs.readdirSync('templates/');
+                var files = Node.fs.readdirSync(saffron.Template.srcRoot);
                 
                 for(file in files) {
                     if(untyped file.indexOf('.html', file.length - 5) != -1) {
-                        file = 'templates/' + file;
+                        file = saffron.Template.srcRoot  + file;
                         templates[untyped file] = Node.fs.readFileSync(file, 'UTF-8');
                     }
                 }
@@ -101,11 +104,11 @@ extern class Template {
             })();
 #else
             saffron.Template.onLoad = function(name, fn) {
-                Node.fs.readFile('templates/' + name, function(err, data) {
+                Node.fs.readFile(saffron.Template.srcRoot + name, function(err, data) {
                     if(data != null) {
                         fn(err, data.toString());
                     } else {
-                        trace("ERROR: Could not load template at 'templates/" + name + '"');
+                        trace("ERROR: Could not load template at '" + saffron.Template.srcRoot + name + '"');
                         fn(null, '');
                     }
                 });
@@ -127,12 +130,12 @@ extern class Template {
         }
 #else
         function onTemplateLoad(name, fn) {
-            var data = __js__("saffron.Template.templates['templates/' + name]");
+            var data = __js__("saffron.Template.templates[saffron.Template.srcRoot + name]");
             
             if(data != null) {
                 fn(null, data);
             } else {
-                trace("ERROR: Could not load template at 'templates/" + name + '"');
+                trace("ERROR: Could not load template at '" + saffron.Template.srcRoot + name + '"');
                 fn(null, '');
             }
         };
