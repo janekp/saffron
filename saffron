@@ -1,0 +1,754 @@
+#!/usr/local/bin/node
+
+/*
+ * Copyright (c) 2013 Janek Priimann, janek.priimann@gmail.com
+ *
+ * Licensed under the terms of MIT License.
+ */
+
+var child_process = require('child_process');
+var path = require('path');
+var fs = require('fs');
+var util = require('util');
+
+var state = {
+    apps: { },
+    config: null,
+    debug: true,
+    root: null,
+    verbose: true,
+    depth: 0,
+    lock: function() {
+        this.depth += 1;
+    },
+    unlock: function() {
+        this.depth -= 1;
+        
+        if(this.depth == 0) {
+            process.stdout.write('> ');
+        }
+    },
+    log: function(str, force) {
+        if(this.verbose == true || force == true) {
+            if(this.depth == 0) {
+                process.stdout.write('\r');
+            }
+            
+            process.stdout.write(str);
+            
+            if(this.depth == 0) {
+                process.stdout.write('> ');
+            }
+        }
+    },
+    exec: function(cmd, fn, cwd) {
+        this.log(cmd + '\n');
+        
+        return child_process.exec(cmd, { cwd: (cwd != null) ? cwd : state.root }, fn);
+    }
+};
+
+var CONST = {
+    HAXE_PATH: 'haxe',
+    NPM_PATH: 'npm',
+    CONFIG_NAME: 'saffron.json',
+    MODE_COMPILE: 'compile',
+    MODE_HELP: 'help',
+    MODE_MONITOR: 'monitor',
+    NODE_MODULES: [ 'connect', 'cookies', 'dustjs-linkedin', 
+                    'formidable', 'generic-pool', 'mapstrace',
+                    'mysql' /* @2.0.0-alpha3 */ ],
+    STATUS_CRASHED: 'CRASHED',
+    STATUS_STARTED: 'RUNNING',
+    STATUS_STOPPED: 'STOPPED',
+    STATUS_BUILDING: 'BUILDING',
+    STATUS_ERROR: 'ERROR',
+    TYPE_CLI: 'cli',
+    TYPE_API: 'api',
+    TYPE_HYBRID: 'hybrid',
+    TYPE_CLIENT: 'client',
+    TYPE_SERVER: 'server',
+    VERSION: '1.0'
+};
+
+var Monitor = {
+    files: { },
+    findAllSubdirectories: function(dir, results) {
+        var i, c, s, p, paths = fs.readdirSync(dir);
+        
+        for(i = 0, c = paths.length; i < c; i++) {
+            if(paths[i].indexOf('.') != 0) {
+                p = path.join(dir, paths[i]);
+                s = fs.statSync(p);
+                
+                if(s != null && s.isDirectory()) {
+                    results.push(p);
+                    this.findAllSubdirectories(p, results);
+                }
+            }
+        }
+    },
+    invalidateFn: function(p) {
+        var that = this;
+        
+        return function(curr, prev) {
+            if(curr.mtime.valueOf() != prev.mtime.valueOf() || curr.ctime.valueOf() != prev.ctime.valueOf()) {
+                that.invalidate(p);
+            }
+        };
+    },
+    invalidate: function(path) {
+        var i, c, s = null, f = this.files[path];
+        
+        if(f != null) {
+            var dirs = [ path ];
+            
+            if(f.dir == true) {
+                this.findAllSubdirectories(path, dirs);
+            }
+            
+            for(i = 0, c = f.watchers; i < c; i++) {
+                if(dirs.indexOf(f.watchers[i]) == -1) {
+                    fs.unwatchFile(f.watchers[i]);
+                }
+            }
+            
+            for(i = 0, c = dirs.length; i < c; i++) {
+                if(f.watchers.indexOf(dirs[i]) == -1) {
+                    if(s == null) {
+                        s = this.invalidateFn(path);
+                    }
+                    
+                    fs.watchFile(dirs[i], { interval: 1000 }, s);
+                }
+            }
+            
+            f.watchers = dirs;
+            
+            for(i = 0, c = f.listeners.length; i < c; i++) {
+                f.listeners[i].fn(path, f.listeners[i].scope);
+            }
+        }
+    },
+    watch: function(p, scope, fn) {
+        var i, c, s, f = this.files[p];
+        
+        if(f == null) {
+            s = fs.statSync(p);
+            
+            if(s == null) {
+                return;
+            }
+            
+            f = { listeners: [ ], watchers: [ p ], dir: s.isDirectory() };
+            this.files[p] = f;
+            
+            if(f.dir == true) {
+                this.findAllSubdirectories(p, f.watchers);
+            }
+            
+            s = this.invalidateFn(p);
+            
+            for(i = 0, c = f.watchers.length; i < c; i++) {
+                fs.watchFile(f.watchers[i], { interval: 1000 }, s);
+            }
+        }
+        
+        f.listeners.push({ scope: scope, fn: fn });
+    },
+    unwatch: function(scope) {
+        var f, i, c, k, l;
+        
+        if(scope != null) {
+            var files = [ ];
+            
+            for(var file in this.files) {
+                f = this.files[file].listeners;
+                
+                for(i = 0, c = f.length; i < c; i++) {
+                    if(f[i].scope == scope) {
+                        f.splice(i, 1);
+                        
+                        if(f.length == 0) {
+                            files.push(file);
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            for(i = 0, c = files.length; i < c; i++) {
+                f = this.files[files[i]].watchers;
+                
+                for(k = 0, l = f.length; k < l; k++) {
+                    fs.unwatchFile(f[k]);
+                }
+                
+                delete this.files[files[i]];
+            }
+        } else {
+            for(var file in this.files) {
+                f = this.files[file].watchers;
+                
+                for(k = 0, l = f.length; k < l; k++) {
+                    fs.unwatchFile(f[k]);
+                }
+            }
+            
+            this.files = { };
+        }
+    }
+};
+
+function Application(config) {
+    var resolve = function(key, fallback) {
+        return path.resolve(path.join(state.root,
+            (state.config[key] && config[key]) ?
+                path.join(state.config[key], config[key]) : (config[key] || state.config[key] || fallback)));
+    };
+    
+    this.process = null;
+    this.modules = config.modules || state.config.modules;
+    this.options = config.options || state.config.options || '';
+    this.sources = resolve('sources', 'src');
+    this.binaries = resolve('binaries', 'build');
+    this.resources = resolve('resources', path.join('lib', 'resources'));
+    this.styles = resolve('styles', path.join('lib', 'styles'));
+    this.templates = resolve('templates', path.join('lib', 'templates'));
+    this.main = config.main;
+    this.name = config.name;
+    this.type = config.type || state.config.type || CONST.TYPE_SERVER;
+    this.status = CONST.STATUS_STOPPED;
+};
+
+Application.prototype.compileOptions = function(options) {
+    return CONST.HAXE_PATH +
+        ((state.debug) ? ' -debug' : '') + 
+        ' -js "' + path.join(this.binaries, this.name + '.js') + '"' +
+        ' -lib saffron ' +
+        options + ' ' + this.options + 
+        ' -cp "' + this.sources + '"' +
+        ' -main ' + this.main;
+};
+
+Application.prototype.linkModules = function(fn, modules) {
+    var module = modules.shift();
+    var that = this;
+    
+    if(!module) {
+        fn(true);
+        return;
+    }
+                    
+    fs.exists(path.join(this.binaries, 'node_modules', module), function(exists) {
+        if(exists) {
+            that.linkModules(fn, modules);
+        } else {
+            state.exec(CONST.NPM_PATH + ' link ' + module, function(err, stdout, stderr) {
+                if(err == null) {
+                    if(stdout.length > 0) {
+                        state.log(stdout + '\n');
+                    }
+                    
+                    that.linkModules(fn, modules);
+                } else {
+                    state.log('\n\n' + stderr + '\n', true);
+                    fn(false);
+                }
+            }, that.binaries);
+        }
+    });
+}
+
+Application.prototype.compileCode = function(fn) {
+    var that = this;
+    
+    state.exec(
+        this.compileOptions((this.type == CONST.TYPE_HYBRID) ? 
+            '-lib nodejs -D nodejs -D server' :
+            ((this.type == CONST.TYPE_CLI ||
+              this.type == CONST.TYPE_SERVER ||
+              this.type == CONST.TYPE_API) ? '-lib nodejs -D nodejs' : '-D client')), function(err, stdout, stderr) {
+        if(err == null) {
+            var modules = CONST.NODE_MODULES.slice(0);
+            
+            if(stdout.length > 0) {
+                state.log(stdout + '\n');
+            }
+            
+            if(that.modules != null && that.modules instanceof Array && that.modules.length > 0) {
+                modules = modules.concat(that.modules);
+            }
+                  
+            if(stdout.length > 0) {
+                state.log(stdout + '\n');
+            }
+            
+            if(that.type == CONST.TYPE_HYBRID) {
+                state.exec(that.compileOptions('-D client'), function(err, stdout, stderr) {
+                    if(err == null) {
+                        that.linkModules(fn, modules);
+                    } else {
+                        state.log('\n\n' + stderr + '\n', true);
+                        fn(false);
+                    }
+                });
+            } else {
+                that.linkModules(fn, modules);
+            }
+        } else {
+            state.log('\n\n' + stderr + '\n', true);
+            fn(false);
+        }
+    });
+};
+
+Application.prototype.compileResources = function(fn) {
+    var s = (fs.existsSync(this.resources)) ? fs.statSync(this.resources) : null;
+    
+    if(s != null && s.isDirectory()) {
+        state.exec(
+            'rsync -a ' +
+            path.join(this.resources, '*') + ' ' +
+            path.join(this.binaries, 'static', this.name) + ' ' +
+            '--exclude=\'.*\'', function(err, stdout, stderr) {
+            if(err == null) {
+                if(stdout.length > 0) {
+                    state.log(stdout);
+                }
+                
+                fn(true);
+            } else {
+                state.log('\n\n' + stderr + '\n', true);
+                fn(false);
+            }
+        });
+    } else {
+        fn(true);
+    }
+};
+
+Application.prototype.compileStyles = function(fn) {
+    var s = (fs.existsSync(this.styles)) ? fs.statSync(this.styles) : null;
+    
+    if(s != null && s.isDirectory()) {
+        state.exec(
+            'cat "' + path.join(this.styles, '*.css') + '" > "' +
+            path.join(this.binaries, 'static', this.name, 'stylesheet.css') + '"', function(err, stdout, stderr) {
+            if(err == null) {
+                if(stdout.length > 0) {
+                    state.log(stdout);
+                }
+                
+                fn(true);
+            } else {
+                state.log('\n\n' + stderr + '\n', true);
+                fn(false);
+            }
+        });
+    } else {
+        fn(true);
+    }
+};
+
+Application.prototype.compileTemplates = function(fn) {
+    var s = (fs.existsSync(this.templates)) ? fs.statSync(this.templates) : null;
+    
+    if(s != null && s.isDirectory()) {
+        state.exec(
+            'rsync -a ' +
+            path.join(this.templates, '*') + ' ' +
+            path.join(this.binaries, 'templates', this.name) + ' ' +
+            '--exclude=\'.*\'', function(err, stdout, stderr) {
+            if(err == null) {
+                if(stdout.length > 0) {
+                    state.log(stdout);
+                }
+                
+                fn(true);
+            } else {
+                state.log('\n\n' + stderr + '\n', true);
+                fn(false);
+            }
+        });
+    } else {
+        fn(true);
+    }
+};
+
+Application.prototype.compile = function(fn) {
+    var that = this;
+    var styles = function(result) {
+        if(result == true) {
+            that.compileTemplates(fn);
+        } else {
+            fn(result);
+        }
+    };
+    var resources = function(result) {
+        if(result == true && that.type != CONST.TYPE_API) {
+            that.compileStyles(styles);
+        } else {
+            fn(result);
+        }
+    };
+    
+    this.compileCode(function(result) {
+        if(result == true && that.type != CONST.TYPE_CLI) {
+            that.compileResources(resources);
+        } else {
+            fn(result);
+        }
+    });
+};
+
+Application.prototype.startProcess = function() {
+    var that = this;
+    
+    state.log(this.name + ': started\n');
+    this.process = child_process.spawn(process.argv[0], [ path.join(that.binaries, that.name + '.js') ], { cwd: state.root, env: process.env });
+    this.process.stdout.addListener('data', function(data) {
+        state.log(data, true);
+    });
+    this.process.stderr.addListener('data', function(data) {
+        state.log(data, true);
+    });
+    this.process.addListener('exit', function(code) {
+        state.log(that.name + ': Child process exited (' + code + ')\n', true);
+        that.process = null;
+        
+        if(that.status == CONST.STATUS_STARTED) {
+            that.status = CONST.STATUS_CRASHED;
+        }
+    });
+};
+
+Application.prototype.stopProcess = function() {
+    if(this.process != null) {
+        this.process.kill();
+        this.process = null;
+        state.log(this.name + ': stopped\n');
+    }
+};
+
+Application.prototype.monitor = function(dir, compiler, comment) {
+    var s = (fs.existsSync(dir)) ? fs.statSync(dir) : null;
+    var that = this;
+    
+    if(s != null && s.isDirectory()) {
+        Monitor.watch(dir, this.name, function(p, s) {
+            state.log('\r', true);
+            state.lock();
+            
+            if(comment != null) {
+                state.log(that.name + ': changed (' + comment + ')\n');
+            }
+            
+            that.stopProcess();
+            that.status = CONST.STATUS_BUILDING;
+            
+            that[compiler].call(that, function(result) {
+                state.unlock();
+                
+                if(that.status == CONST.STATUS_BUILDING) {
+                    if(result == true) {
+                        that.status = CONST.STATUS_STARTED;
+                        that.startProcess();
+                    } else {
+                        that.status = CONST.STATUS_ERROR;
+                    }
+                }
+            });
+        });
+    }
+};
+
+Application.prototype.start = function() {
+    if(this.status == CONST.STATUS_STOPPED) {
+        var that = this;
+        
+        state.lock();
+        
+        this.monitor(this.sources, 'compileCode', 'sources');
+        this.status = CONST.STATUS_BUILDING;
+        
+        this.compile(function(result) {
+            if(result == true) {
+                that.status = CONST.STATUS_STARTED;
+                that.startProcess();
+                
+                if(that.type != CONST.TYPE_CLI) {
+                    that.monitor(that.resources, 'compileResources', 'resources');
+                    
+                    if(that.type != CONST.TYPE_API) {
+                        that.monitor(that.styles, 'compileStyles', 'styles');
+                        that.monitor(that.templates, 'compileTemplates', 'templates');
+                    }
+                }
+            } else {
+                that.status = CONST.STATUS_ERROR;
+            }
+            
+            state.unlock();
+        });
+    }
+};
+
+Application.prototype.stop = function() {
+    if(this.status != CONST.STATUS_STOPPED) {
+        Monitor.unwatch(this.name);
+        this.status = CONST.STATUS_STOPPED;
+        this.stopProcess();
+    }
+};
+
+function findApplicationForName(name) {
+    var app = state.apps[name];
+    var i, c;
+    
+    if(app == null) {
+        for(i = 0, c = state.config.apps.length; i < c; i++) {
+            if(state.config.apps[i].name == name) {
+                app = new Application(state.config.apps[i]);
+                state.apps[name] = app;
+                break;
+            }
+        }
+    }
+    
+    return app;
+}
+
+function monitorConfigChanges(path) {
+    fs.watch(path, function(event) {
+        if(event == 'change') {
+            var config;
+            
+            state.log('Detected a configuration change...\n');
+            
+            if((config = readConfig(path)) != null) {
+                var i, c, app, apps = [ ];
+                
+                for(i = 0, c = state.config.apps.length; i < c; i++) {
+                    app = state.apps[state.config.apps[i].name];
+                    
+                    if(app != null) {
+                        if(app.status != CONST.STATUS_STOPPED) {
+                            apps.push(state.config.apps[i].name);
+                            app.stop();
+                        }
+                    }
+                }
+                
+                Monitor.unwatch();
+                state.apps = null;
+                state.config = config;
+                
+                for(i = 0, c = apps.length; i < c; i++) {
+                    executeCommandForApplication(apps[i], 'start');
+                }
+            }
+        }
+    });
+}
+
+function executeCommandForApplication(name, cmd) {
+    var app = findApplicationForName(name);
+    
+    if(app != null) {
+        app[cmd].call(app);
+    } else {
+        state.log('Cannot find application "' + name + '"\n', true);
+    }
+}
+
+function executeCommand(cmd, app) {
+    var i, c, app;
+    
+    state.lock();
+    
+    if(cmd == 'help') {
+        process.stdout.write('Available commands:\n');
+        process.stdout.write('  restart [app]\tStop and start\n');
+        process.stdout.write('  start [app]\tStart\n');
+        process.stdout.write('  stop [app]\t\n');
+        process.stdout.write('  status\tThe current status\n');
+        process.stdout.write('  exit\t\n');
+    } else if(cmd == 'restart') {
+        executeCommand('stop', app);
+        executeCommand('start', app);
+    } else if(cmd == 'status') {
+        process.stdout.write('Status:\n');
+        
+        for(i = 0, c = state.config.apps.length; i < c; i++) {
+            app = state.config.apps[i];
+            process.stdout.write('  ' + app.name + '\t[' + ((state.apps[app.name] != null) ? state.apps[app.name].status : CONST.STATUS_STOPPED) + ']\n');
+        }
+    } else if(cmd == 'start') {
+        if(app == null) {
+            for(i = 0, c = state.config.apps.length; i < c; i++) {
+                executeCommand('start', state.config.apps[i].name);
+            }
+        } else {
+            executeCommandForApplication(app, 'start');
+        }
+    } else if(cmd == 'stop') {
+        if(app == null) {
+            for(i = 0, c = state.config.apps.length; i < c; i++) {
+                executeCommand('stop', state.config.apps[i].name);
+            }
+        } else {
+            executeCommandForApplication(app, 'stop');
+        }
+    } else if(cmd == 'exit') {
+        for(i = 0, c = state.config.apps.length; i < c; i++) {
+            app = state.config.apps[i];
+            
+            if(state.apps[app.name] != null) {
+                state.apps[app.name].stopProcess();
+            }
+        }
+        
+        process.exit(0);
+    } else {
+        process.stdout.write('Unknown command. Type "help" to learn more.\n');
+    }
+    
+    state.unlock();
+}
+
+function readConfig(path) {
+    try {
+        var config = JSON.parse(fs.readFileSync(path, { encoding: 'utf8' }));
+        var i, c;
+        
+        if(config.apps == null) {
+            config.apps = [];
+        }
+        
+        if(!(config.apps instanceof Array)) {
+            throw '"apps" must be an array';
+        }
+        
+        for(i = 0, c = config.apps; i < c; i++) {
+            var app = config.apps[i];
+            
+            if(typeof(app) != 'object') {
+                throw 'app must be a dictionary';
+            }
+            
+            if(typeof(app.name) != 'string') {
+                throw 'app "name" is invalid (' + JSON.stringify(app.name) + ')';
+            }
+            
+            if(typeof(app.main) != 'string') {
+                throw 'app "main" is invalid (' + JSON.stringify(app.main) + ')';
+            }
+        }
+        
+        return config;
+    }
+    catch(e) {
+        state.log('Unable to read "' + path + '":\n\t' + e + '\n', true);
+    }
+    
+    return null;
+}
+
+var launchConfig = CONST.CONFIG_NAME;
+var launchMode = CONST.MODE_HELP;
+var launchArguments = [ ];
+
+var parseState = 0;
+
+process.argv.forEach(function(arg) {
+    if(parseState == 0) {
+        if(arg == '-c' || arg == '--config') {
+            parseState = 1;
+        } else if(arg == '--deploy') {
+            state.debug = false;
+        } else if(arg == '-h' || arg == '--help') {
+            launchMode = CONST.MODE_HELP;
+            parseState = 2;
+        } else if(arg == '--version') {
+            process.stdout.write(CONST.VERSION + '\n');
+            process.exit(0);
+        } else if(arg == CONST.MODE_MONITOR ||
+                  arg == CONST.MODE_HELP ||
+                  arg == CONST.MODE_COMPILE) {
+            launchMode = arg;
+            parseState = 2;
+        }
+    } else if(parseState == 1) {
+        launchConfig = arg;
+        parseState = 0;
+    } else if(parseState == 2) {
+        launchArguments.push(arg);
+    }
+});
+
+if(launchMode == null) {
+    process.stdout.write('Unknown launch mode\n');
+    process.exit(1);
+} else if(launchMode == CONST.MODE_HELP) {
+    process.stdout.write('\nUsage:\n');
+    process.stdout.write('  saffron -c config.json monitor\n');
+    process.stdout.write('  saffron monitor start\n\n');
+    process.stdout.write('Launch options:\n');
+    process.stdout.write('  -c PATH\tConfig file\n');
+    process.stdout.write('  --verbose\tVerbose mode\n');
+    process.stdout.write('  --deploy\tDeployment mode\n');
+    process.stdout.write('  --version\tPrint version\n\n');
+    process.stdout.write('Available commands:\n');
+    process.stdout.write('  compile [app]\n');
+    process.stdout.write('  monitor [action] [app]\n');
+    process.stdout.write('  help\n\n');
+    process.exit(0);
+} else if((state.config = readConfig(launchConfig)) != null) {
+    state.root = path.dirname(path.resolve(launchConfig));
+    
+    if(launchMode == CONST.MODE_MONITOR) {
+        process.stdin.resume();
+        process.stdin.setEncoding('utf8');
+        
+        process.stdin.on('data', function(chunk) {
+            if(state.depth == 0) {
+                var cmd = chunk.toString().replace(/^\s+|\s+$/g, '').split(' ');
+                
+                if(cmd[0].length > 0) {
+                    executeCommand(cmd[0], (cmd.length > 1) ? cmd[1] : null);
+                }
+            }
+        });
+        
+        process.on('SIGINT', function() {
+            executeCommand('exit', null);
+        });
+        
+        executeCommand((launchArguments.length > 0) ? launchArguments[0] : 'status',
+                       (launchArguments.length > 1) ? launchArguments[1] : null);
+        monitorConfigChanges(launchConfig);
+    } else if(launchMode == CONST.MODE_COMPILE) {
+        var name = (launchArguments.length > 0) ? launchArguments[0] : null;
+        var i, c, app, exitcode = 0, counter = 0;
+        
+        for(i = 0, c = state.config.apps.length; i < c; i++) {
+            app = new Application(state.config.apps[i]);
+            
+            if(name == null || app.name == name) {
+                counter += 1;
+                app.compile(function(result) {
+                    counter -= 1;
+                    
+                    if(result == false) {
+                        exitcode = 1;
+                    }
+                    
+                    if(counter == 0) {
+                        process.exit(exitcode);
+                    }
+                });
+            }
+        }
+    }
+}
