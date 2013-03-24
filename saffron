@@ -724,7 +724,7 @@ if(launchMode == null) {
             executeCommand('exit', null);
         });
         
-        executeCommand((launchArguments.length > 0) ? launchArguments[0] : 'status',
+        executeCommand((launchArguments.length > 0) ? launchArguments[0] : 'start',
                        (launchArguments.length > 1) ? launchArguments[1] : null);
         monitorConfigChanges(launchConfig);
     } else if(launchMode == CONST.MODE_COMPILE) {
