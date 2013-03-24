@@ -32,7 +32,7 @@ class Handler {
         this._ctx = context;
     }
     
-    private inline function error(?status : Int) : Void {
+    private inline function renderError(?status : Int) : Void {
 #if !client
         untyped Server.context.handleError((status != null) ? status : 500, this._ctx);
 #else
@@ -40,7 +40,7 @@ class Handler {
 #end
     }
     
-    private inline function redirect(location : String) : Void {
+    private inline function renderRedirect(location : String) : Void {
 #if !client
         this._ctx.response.writeHead(302, { 'Location': location });
         this._ctx.response.end();
