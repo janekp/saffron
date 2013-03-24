@@ -9,7 +9,6 @@
 var child_process = require('child_process');
 var path = require('path');
 var fs = require('fs');
-var util = require('util');
 
 var state = {
     apps: { },
