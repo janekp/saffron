@@ -58,6 +58,7 @@ var CONST = {
                     'formidable', 'generic-pool', 'mapstrace',
                     'mysql' /* @2.0.0-alpha3 */ ],
     STATUS_CRASHED: 'CRASHED',
+    STATUS_EXITED: 'EXITED',
     STATUS_STARTED: 'RUNNING',
     STATUS_STOPPED: 'STOPPED',
     STATUS_BUILDING: 'BUILDING',
@@ -218,6 +219,16 @@ function Application(config) {
     this.name = config.name;
     this.type = config.type || state.config.type || CONST.TYPE_SERVER;
     this.status = CONST.STATUS_STOPPED;
+    this.watching = false;
+    
+    if(this.type == CONST.TYPE_CLI) {
+        this.resources = null;
+    }
+    
+    if(this.type == CONST.TYPE_API) {
+        this.styles = null;
+        this.templates = null;
+    }
 };
 
 Application.prototype.compileOptions = function(options) {
@@ -303,7 +314,7 @@ Application.prototype.compileCode = function(fn) {
 };
 
 Application.prototype.compileResources = function(fn) {
-    var s = (fs.existsSync(this.resources)) ? fs.statSync(this.resources) : null;
+    var s = (this.resources && fs.existsSync(this.resources)) ? fs.statSync(this.resources) : null;
     
     if(s != null && s.isDirectory()) {
         state.exec(
@@ -328,7 +339,7 @@ Application.prototype.compileResources = function(fn) {
 };
 
 Application.prototype.compileStyles = function(fn) {
-    var s = (fs.existsSync(this.styles)) ? fs.statSync(this.styles) : null;
+    var s = (this.styles && fs.existsSync(this.styles)) ? fs.statSync(this.styles) : null;
     
     if(s != null && s.isDirectory()) {
         state.exec(
@@ -351,7 +362,7 @@ Application.prototype.compileStyles = function(fn) {
 };
 
 Application.prototype.compileTemplates = function(fn) {
-    var s = (fs.existsSync(this.templates)) ? fs.statSync(this.templates) : null;
+    var s = (this.templates && fs.existsSync(this.templates)) ? fs.statSync(this.templates) : null;
     
     if(s != null && s.isDirectory()) {
         state.exec(
@@ -417,7 +428,7 @@ Application.prototype.startProcess = function() {
         that.process = null;
         
         if(that.status == CONST.STATUS_STARTED) {
-            that.status = CONST.STATUS_CRASHED;
+            that.status = (code == 0) ? CONST.STATUS_EXITED : CONST.STATUS_CRASHED;
         }
     });
 };
@@ -431,7 +442,7 @@ Application.prototype.stopProcess = function() {
 };
 
 Application.prototype.monitor = function(dir, compiler, comment) {
-    var s = (fs.existsSync(dir)) ? fs.statSync(dir) : null;
+    var s = (dir && fs.existsSync(dir)) ? fs.statSync(dir) : null;
     var that = this;
     
     if(s != null && s.isDirectory()) {
@@ -463,7 +474,11 @@ Application.prototype.monitor = function(dir, compiler, comment) {
 };
 
 Application.prototype.start = function() {
-    if(this.status == CONST.STATUS_CRASHED) {
+    this.start_watch(true);
+};
+
+Application.prototype.start_watch = function(nowatch) {
+    if(this.status == CONST.STATUS_CRASHED || this.status == CONST.STATUS_EXITED) {
         this.status = CONST.STATUS_STARTED;
         this.startProcess();    
     } else if(this.status == CONST.STATUS_STOPPED) {
@@ -471,7 +486,11 @@ Application.prototype.start = function() {
         
         state.lock();
         
-        this.monitor(this.sources, 'compileCode', 'sources');
+        if(nowatch != true) {
+            this.monitor(this.sources, 'compileCode', 'sources');
+            this.watching = true;
+        }
+        
         this.status = CONST.STATUS_BUILDING;
         
         this.compile(function(result) {
@@ -479,13 +498,10 @@ Application.prototype.start = function() {
                 that.status = CONST.STATUS_STARTED;
                 that.startProcess();
                 
-                if(that.type != CONST.TYPE_CLI) {
+                if(nowatch != true) {
                     that.monitor(that.resources, 'compileResources', 'resources');
-                    
-                    if(that.type != CONST.TYPE_API) {
-                        that.monitor(that.styles, 'compileStyles', 'styles');
-                        that.monitor(that.templates, 'compileTemplates', 'templates');
-                    }
+                    that.monitor(that.styles, 'compileStyles', 'styles');
+                    that.monitor(that.templates, 'compileTemplates', 'templates');
                 }
             } else {
                 that.status = CONST.STATUS_ERROR;
@@ -501,6 +517,7 @@ Application.prototype.stop = function() {
         Monitor.unwatch(this.name);
         this.status = CONST.STATUS_STOPPED;
         this.stopProcess();
+        this.watching = false;
     }
 };
 
@@ -573,6 +590,7 @@ function executeCommand(cmd, app) {
         process.stdout.write('Available commands:\n');
         process.stdout.write('  restart [app]\tStop and start\n');
         process.stdout.write('  start [app]\tStart\n');
+        process.stdout.write('  start_watch [app]\tStart and watch\n');
         process.stdout.write('  stop [app]\t\n');
         process.stdout.write('  status\tThe current status\n');
         process.stdout.write('  exit\t\n');
@@ -584,23 +602,17 @@ function executeCommand(cmd, app) {
         
         for(i = 0, c = state.config.apps.length; i < c; i++) {
             app = state.config.apps[i];
-            process.stdout.write('  ' + app.name + '\t[' + ((state.apps[app.name] != null) ? state.apps[app.name].status : CONST.STATUS_STOPPED) + ']\n');
+            process.stdout.write(
+                '  [' + ((state.apps[app.name] != null && state.apps[app.name].watching == true) ? '+' : '-') + '] ' +
+                app.name + '\t[' + ((state.apps[app.name] != null) ? state.apps[app.name].status : CONST.STATUS_STOPPED) + ']\n');
         }
-    } else if(cmd == 'start') {
+    } else if(cmd == 'start' || cmd == 'start_watch' || cmd == 'stop') {
         if(app == null) {
             for(i = 0, c = state.config.apps.length; i < c; i++) {
-                executeCommand('start', state.config.apps[i].name);
+                executeCommandForApplication(state.config.apps[i].name, cmd);
             }
         } else {
-            executeCommandForApplication(app, 'start');
-        }
-    } else if(cmd == 'stop') {
-        if(app == null) {
-            for(i = 0, c = state.config.apps.length; i < c; i++) {
-                executeCommand('stop', state.config.apps[i].name);
-            }
-        } else {
-            executeCommandForApplication(app, 'stop');
+            executeCommandForApplication(app, cmd);
         }
     } else if(cmd == 'exit') {
         for(i = 0, c = state.config.apps.length; i < c; i++) {
@@ -613,7 +625,7 @@ function executeCommand(cmd, app) {
         
         process.exit(0);
     } else {
-        process.stdout.write('Unknown command. Type "help" to learn more.\n');
+        process.stdout.write('Unknown command "' + cmd + '". Type "help" to learn more.\n');
     }
     
     state.unlock();
@@ -727,7 +739,7 @@ if(launchMode == null) {
             executeCommand('exit', null);
         });
         
-        executeCommand((launchArguments.length > 0) ? launchArguments[0] : 'start',
+        executeCommand((launchArguments.length > 0) ? launchArguments[0] : 'start_watch',
                        (launchArguments.length > 1) ? launchArguments[1] : null);
         monitorConfigChanges(launchConfig);
     } else if(launchMode == CONST.MODE_COMPILE) {
