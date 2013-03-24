@@ -15,7 +15,7 @@ var state = {
     config: null,
     debug: true,
     root: null,
-    verbose: true,
+    verbose: false,
     depth: 0,
     lock: function() {
         this.depth += 1;
