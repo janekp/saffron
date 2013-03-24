@@ -351,9 +351,10 @@ var Config = {
 
 function Application(config) {
     var resolve = function(key, fallback) {
-        return path.resolve(path.join(State.root,
-            (State.config[key] && config[key]) ?
-                path.join(State.config[key], config[key]) : (config[key] || State.config[key] || fallback)));
+        return (typeof(config[key]) == 'null') ? null :
+            path.resolve(path.join(State.root,
+                (State.config[key] && config[key]) ?
+                    path.join(State.config[key], config[key]) : (config[key] || State.config[key] || fallback)));
     };
     
     this.process = null;
