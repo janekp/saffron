@@ -38,6 +38,7 @@ class Page extends Handler {
                         return chunk.partial(template + '.html', ctx);
                     },
                     context: this._ctx,
+                    page: this,
                     language: Locale.code,
                     template: template
                 })).pipe(this._ctx.response);
@@ -57,6 +58,7 @@ class Page extends Handler {
                         return chunk.partial(template + '.html', (params != null) ? params : this);
                     },
                     context: this._ctx,
+                    page: this,
                     language: Locale.code,
                     template: template
                 }), function(err, html) {
