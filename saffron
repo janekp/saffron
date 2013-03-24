@@ -43,6 +43,7 @@ var State = {
     root: null,
     verbose: false,
     depth: 0,
+    linking: null,
     lock: function() {
         this.depth += 1;
     },
@@ -395,37 +396,71 @@ Application.prototype.compileOptions = function(options) {
         ' -main ' + this.main;
 };
 
-Application.prototype.linkModules = function(fn, modules) {
-    var module = modules.shift();
-    var that = this;
-    
-    if(!module) {
-        fn(true);
-        return;
+Application.prototype.linkModulesNext = function() {                        
+    if(State.linking != null && State.linking.length > 0) {
+        process.nextTick(function() {
+            var next = State.linking.shift();
+            
+            next.app.linkModules(next.fn, next.modules, true);
+        });
+    } else {
+        State.linking = null;
     }
-                    
-    fs.exists(path.join(this.binaries, 'node_modules', module), function(exists) {
-        if(exists) {
-            that.linkModules(fn, modules);
-        } else {
-            State.exec(CONST.NPM_PATH + ' link ' + module, function(err, stdout, stderr) {
-                if(err == null) {
-                    if(stdout.length > 0) {
-                        State.log(stdout + '\n');
-                    }
-                    
-                    that.linkModules(fn, modules);
-                } else {
-                    State.log('\n\n' + stderr + '\n', true);
-                    fn(false);
-                }
-            }, that.binaries);
+};
+
+Application.prototype.linkModules = function(fn, modules, _recursive) {
+    if(State.linking != null && _recursive != true) {
+        State.linking.push({ app: this, fn: fn, modules: modules });
+    } else {
+        var module = modules.shift();
+        var that = this;
+        
+        if(!module) {
+            this.linkModulesNext();
+            fn(true);
+            return;
         }
-    });
+        
+        if(State.linking == null) {
+            State.linking = [ ];
+        }
+        
+        fs.exists(path.join(this.binaries, 'node_modules', module), function(exists) {
+            if(exists) {
+                that.linkModules(fn, modules, true);
+            } else {
+                State.exec(CONST.NPM_PATH + ' link ' + module, function(err, stdout, stderr) {
+                    if(err == null) {
+                        if(stdout.length > 0) {
+                            State.log(stdout + '\n');
+                        }
+                        
+                        that.linkModules(fn, modules, true);
+                    } else {
+                        State.log('\n\n' + stderr + '\n', true);
+                        that.linkModulesNext();
+                        fn(false);
+                    }
+                }, that.binaries);
+            }
+        });
+    }
 }
+
+Application.prototype.ensureDirectory = function(dir) {
+    if(!fs.existsSync(dir)) {
+        try {
+            fs.mkdirSync(dir);
+        }
+        catch(e) {
+        }
+    }
+};
 
 Application.prototype.compileCode = function(fn) {
     var that = this;
+    
+    this.ensureDirectory(this.binaries);
     
     State.exec(
         this.compileOptions((this.type == CONST.TYPE_HYBRID) ? 
@@ -471,6 +506,8 @@ Application.prototype.compileResources = function(fn) {
     var s = (this.resources && fs.existsSync(this.resources)) ? fs.statSync(this.resources) : null;
     
     if(s != null && s.isDirectory()) {
+        this.ensureDirectory(path.join(this.binaries, this.static));
+        
         State.exec(
             'rsync -a ' +
             path.join(this.resources, '*') + ' ' +
@@ -496,6 +533,8 @@ Application.prototype.compileStyles = function(fn) {
     var s = (this.styles && fs.existsSync(this.styles)) ? fs.statSync(this.styles) : null;
     
     if(s != null && s.isDirectory()) {
+        this.ensureDirectory(path.join(this.binaries, this.static, this.name));
+        
         State.exec(
             'cat "' + path.join(this.styles, '*.css') + '" > "' +
             path.join(this.binaries, this.static, this.name, this.stylesheet) + '"', function(err, stdout, stderr) {
@@ -519,6 +558,8 @@ Application.prototype.compileTemplates = function(fn) {
     var s = (this.templates && fs.existsSync(this.templates)) ? fs.statSync(this.templates) : null;
     
     if(s != null && s.isDirectory()) {
+        this.ensureDirectory(path.join(this.binaries, 'templates'));
+        
         State.exec(
             'rsync -a ' +
             path.join(this.templates, '*') + ' ' +
