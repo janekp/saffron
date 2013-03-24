@@ -463,7 +463,10 @@ Application.prototype.monitor = function(dir, compiler, comment) {
 };
 
 Application.prototype.start = function() {
-    if(this.status == CONST.STATUS_STOPPED) {
+    if(this.status == CONST.STATUS_CRASHED) {
+        this.status = CONST.STATUS_STARTED;
+        this.startProcess();    
+    } else if(this.status == CONST.STATUS_STOPPED) {
         var that = this;
         
         state.lock();
