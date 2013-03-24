@@ -354,7 +354,7 @@ var Config = {
 
 function Application(config) {
     var resolve = function(key, fallback) {
-        return (typeof(config[key]) == 'null') ? null :
+        return ((config[key]) === null) ? null :
             path.resolve(path.join(State.root,
                 (State.config[key] && config[key]) ?
                     path.join(State.config[key], config[key]) : (config[key] || State.config[key] || fallback)));
@@ -380,7 +380,7 @@ function Application(config) {
         this.resources = null;
     }
     
-    if(this.type == CONST.TYPE_API) {
+    if(this.type == CONST.TYPE_CLI || this.type == CONST.TYPE_API) {
         this.styles = null;
         this.templates = null;
     }
@@ -731,6 +731,8 @@ process.argv.forEach(function(arg) {
         } else if(arg == '-h' || arg == '--help') {
             launchMode = CONST.MODE_HELP;
             parseState = 2;
+        } else if(arg == '-V' || arg == '--verbose') {
+            State.verbose = true;
         } else if(arg == '--version') {
             process.stdout.write(CONST.VERSION + '\n');
             process.exit(0);
