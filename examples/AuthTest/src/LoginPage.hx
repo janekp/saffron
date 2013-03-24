@@ -34,7 +34,7 @@ class LoginPage extends Page {
                 trace('state=' + Environment.JSON.stringify(state));
                 
                 this.cookies().set('session', username);
-                this.redirect((state != null && Std.is(state.url, String) && state.url != '/login' && state.url != '/logout') ? state.url : '/');
+                this.renderRedirect((state != null && Std.is(state.url, String) && state.url != '/login' && state.url != '/logout') ? state.url : '/');
             } else {
                 this.index('Incorrect password!', username, state);
             }
@@ -45,6 +45,6 @@ class LoginPage extends Page {
     
     public function logout() : Void {
         this.cookies().set('session', null);
-        this.redirect('/');
+        this.renderRedirect('/');
     }
 }
