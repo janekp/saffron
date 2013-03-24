@@ -550,8 +550,8 @@ Application.prototype.compileStyles = function(fn) {
         this.ensureDirectory(path.join(this.binaries, this.static, this.name));
         
         State.exec(
-            'cat "' + path.join(this.styles, '*.css') + '" > "' +
-            path.join(this.binaries, this.static, this.name, this.stylesheet) + '"', function(err, stdout, stderr) {
+            'cat ' + path.join(this.styles, '*.css') + ' > ' +
+            path.join(this.binaries, this.static, this.name, this.stylesheet), function(err, stdout, stderr) {
             if(err == null) {
                 if(stdout.length > 0) {
                     State.log(stdout);
@@ -713,7 +713,7 @@ Application.prototype.start = function() {
 Application.prototype.start_watch = function(nowatch) {
     if(this.status == CONST.STATUS_CRASHED || this.status == CONST.STATUS_EXITED) {
         this.status = CONST.STATUS_STARTED;
-        this.startProcess();    
+        this.startProcess();
     } else if(this.status == CONST.STATUS_STOPPED) {
         var that = this;
         
