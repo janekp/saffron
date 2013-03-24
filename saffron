@@ -243,8 +243,14 @@ var Cli = {
             process.stdout.write('  status\tThe current status\n');
             process.stdout.write('  exit\t\n');
         } else if(cmd == 'restart') {
-            this.executeCommand('stop', app);
-            this.executeCommand('start', app);
+            if(app == null) {
+                for(i = 0, c = State.config.apps.length; i < c; i++) {
+                    this.executeCommand(cmd, app);
+                }
+            } else {
+                this.executeCommand('stop', app);
+                this.executeCommand((State.config.apps[i] != null && State.config.apps[i].watching == true) ? 'start_watch' : 'start', app);
+            }
         } else if(cmd == 'status') {
             process.stdout.write('Status:\n');
             
