@@ -30,6 +30,25 @@ class Navigation extends Widget {
         this.set(key_selected, '' + selected);
     }
     
+    public function selectAction(action : String) : Bool {
+        if(this.items != null) {
+            var i = 0, c = this.items.length;
+            
+            while(i < c) {
+                if(this.items[i].action == action) {
+                    this.setSelectedIndex(i);
+                    return true;
+                }
+                
+                i++;
+            }
+        }
+        
+        this.setSelectedIndex(-1);
+        
+        return false;
+    }
+    
     public function getItems() : Array<NavigationItem> {
         return this.items;
     }
