@@ -26,6 +26,8 @@ var CONST = {
     STATUS_STOPPED: 'STOPPED',
     STATUS_BUILDING: 'BUILDING',
     STATUS_ERROR: 'ERROR',
+    STATIC_NAME: 'static',
+    STYLESHEET_NAME: 'stylesheet.css',
     TYPE_CLI: 'cli',
     TYPE_API: 'api',
     TYPE_HYBRID: 'hybrid',
@@ -357,16 +359,18 @@ function Application(config) {
                     path.join(State.config[key], config[key]) : (config[key] || State.config[key] || fallback)));
     };
     
+    this.name = config.name;
     this.process = null;
     this.modules = config.modules || State.config.modules;
     this.options = config.options || State.config.options || '';
+    this.stylesheet = config.stylesheet || State.config.stylesheet || CONST.STYLESHEET_NAME;
+    this.static = config.static || State.config.static || CONST.STATIC_NAME;
     this.sources = resolve('sources', 'src');
     this.binaries = resolve('binaries', 'build');
     this.resources = resolve('resources', path.join('lib', 'resources'));
     this.styles = resolve('styles', path.join('lib', 'styles'));
     this.templates = resolve('templates', path.join('lib', 'templates'));
     this.main = config.main;
-    this.name = config.name;
     this.type = config.type || State.config.type || CONST.TYPE_SERVER;
     this.status = CONST.STATUS_STOPPED;
     this.watching = false;
@@ -470,7 +474,7 @@ Application.prototype.compileResources = function(fn) {
         State.exec(
             'rsync -a ' +
             path.join(this.resources, '*') + ' ' +
-            path.join(this.binaries, 'static', this.name) + ' ' +
+            path.join(this.binaries, this.static, this.name) + ' ' +
             '--exclude=\'.*\'', function(err, stdout, stderr) {
             if(err == null) {
                 if(stdout.length > 0) {
@@ -494,7 +498,7 @@ Application.prototype.compileStyles = function(fn) {
     if(s != null && s.isDirectory()) {
         State.exec(
             'cat "' + path.join(this.styles, '*.css') + '" > "' +
-            path.join(this.binaries, 'static', this.name, 'stylesheet.css') + '"', function(err, stdout, stderr) {
+            path.join(this.binaries, this.static, this.name, this.stylesheet) + '"', function(err, stdout, stderr) {
             if(err == null) {
                 if(stdout.length > 0) {
                     State.log(stdout);
