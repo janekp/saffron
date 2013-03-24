@@ -22,6 +22,8 @@ class WebView extends Widget {
     public override function render(chunk : TemplateChunk) : TemplateChunk {
         var html = this.getHtml();
         
-        return chunk.write('<div' + Utils.escapeHtmlParamUnsafe(' id', this.getId()) + '>' + ((html != null) ? html : '') + '</div>');
+        return chunk.write('<div' +
+            Utils.escapeHtmlParamUnsafe(' id', this.getId()) + 
+            Utils.escapeHtmlParamUnsafe(' class', this.getClass()) + '>' + ((html != null) ? html : '') + '</div>');
     }
 }
