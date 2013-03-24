@@ -234,12 +234,20 @@ var Cli = {
         
         State.lock();
         
+        if(cmd == 'watch') {
+            cmd = 'start_watch';
+        } else if(cmd == 'unwatch') {
+            cmd = 'stop';
+        }
+        
         if(cmd == 'help') {
             process.stdout.write('Available commands:\n');
             process.stdout.write('  restart [app]\tStop and start\n');
             process.stdout.write('  start [app]\tStart\n');
             process.stdout.write('  start_watch [app]\tStart and watch\n');
             process.stdout.write('  stop [app]\t\n');
+            process.stdout.write('  resume [app]\t\n');
+            process.stdout.write('  pause [app]\t\n');
             process.stdout.write('  status\tThe current status\n');
             process.stdout.write('  exit\t\n');
         } else if(cmd == 'restart') {
@@ -260,7 +268,7 @@ var Cli = {
                     '  [' + ((State.apps[app.name] != null && State.apps[app.name].watching == true) ? '+' : '-') + '] ' +
                     app.name + '\t[' + ((State.apps[app.name] != null) ? State.apps[app.name].status : CONST.STATUS_STOPPED) + ']\n');
             }
-        } else if(cmd == 'start' || cmd == 'start_watch' || cmd == 'stop') {
+        } else if(cmd == 'start' || cmd == 'start_watch' || cmd == 'stop' || cmd == 'resume' || cmd == 'pause') {
             if(app == null) {
                 for(i = 0, c = State.config.apps.length; i < c; i++) {
                     this.executeCommandForApplication(State.config.apps[i].name, cmd);
@@ -617,7 +625,7 @@ Application.prototype.startProcess = function() {
     var that = this;
     
     State.log(this.name + ': started\n');
-    this.process = child_process.spawn(process.argv[0], [ path.join(that.binaries, that.name + '.js') ], { cwd: State.root, env: process.env });
+    this.process = child_process.spawn(process.argv[0], [ path.join(this.binaries, this.name + '.js') ], { cwd: this.binaries, env: process.env });
     this.process.stdout.addListener('data', function(data) {
         State.log(data, true);
     });
@@ -625,7 +633,7 @@ Application.prototype.startProcess = function() {
         State.log(data, true);
     });
     this.process.addListener('exit', function(code) {
-        State.log(that.name + ': Child process exited (' + code + ')\n', true);
+        State.log(that.name + ': Child process exited (' + code + ')\n', (code != 143) ? true : false);
         that.process = null;
         
         if(that.status == CONST.STATUS_STARTED) {
@@ -639,6 +647,30 @@ Application.prototype.stopProcess = function() {
         this.process.kill();
         this.process = null;
         State.log(this.name + ': stopped\n');
+    }
+};
+
+Application.prototype.resume = function() {
+    if(this.status == CONST.STATUS_CRASHED || this.status == CONST.STATUS_EXITED || this.status == CONST.STATUS_STOPPED) {
+        var that = this;
+        
+        State.lock();
+        
+        fs.exists(path.join(that.binaries, that.name + '.js'), function(exists) {
+            if(exists) {
+                that.status = CONST.STATUS_STARTED;
+                that.startProcess();
+            }
+            
+            State.unlock();
+        });
+    }
+};
+
+Application.prototype.pause = function() {
+    if(this.status == CONST.STATUS_STARTED) {
+        this.status = CONST.STATUS_EXITED;
+        this.stopProcess();
     }
 };
 
