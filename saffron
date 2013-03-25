@@ -51,7 +51,7 @@ var State = {
         this.depth -= 1;
         
         if(this.depth == 0) {
-            process.stdout.write('> ');
+            process.stdout.write('\r> ');
         }
     },
     log: function(str, force) {
@@ -63,7 +63,7 @@ var State = {
             process.stdout.write(str);
             
             if(this.depth == 0) {
-                process.stdout.write('> ');
+                process.stdout.write('\r> ');
             }
         }
     },
@@ -87,6 +87,23 @@ var State = {
         }
         
         return app;
+    },
+    notifyTimer: 0,
+    notifyQueue: [],
+    logChange: function(name) {
+        if(this.notifyQueue.indexOf(name) == -1) {
+            this.notifyQueue.push(name);
+        }
+        
+        if(this.notifyTimer == 0) {
+            this.notifyTimer = setTimeout(function() {
+                var timestamp = (new Date()).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+                
+                State.log('\rChanged (' + State.notifyQueue + ') at ' + timestamp + '\n', true);
+                State.notifyTimer = 0;
+                State.notifyQueue = [];
+            }, 1000);
+        }
     }
 };
 
@@ -686,6 +703,8 @@ Application.prototype.monitor = function(dir, compiler, comment) {
             if(comment != null) {
                 State.log(that.name + ': changed (' + comment + ')\n');
             }
+            
+            State.logChange(that.name);
             
             that.stopProcess();
             that.status = CONST.STATUS_BUILDING;
