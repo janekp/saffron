@@ -175,7 +175,8 @@ class Macros {
                 if((render = containsMeta(field, ':render')) != null) {
                     var _name = field.name;
                     var expr = macro function(chunk : saffron.Template.TemplateChunk) : saffron.Template.TemplateChunk {
-                        return this.$_name().render(chunk);
+                        var widget : saffron.Widget = this.$_name();
+                        return (widget != null) ? widget.render(chunk) : chunk;
                     };
                     var func : Function = switch(expr.expr) {
                         case EFunction(_name, f):
