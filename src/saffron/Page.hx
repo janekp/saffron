@@ -8,7 +8,7 @@ import js.Node;
 
 import saffron.Template;
 
-class Page extends Handler {
+@:autoBuild(saffron.Macros.buildPage()) class Page extends Handler {
     public function render(?params : Dynamic, ?template : String, ?status : Int) : Void {
         if(template == null) {
             template = this._ctx.template;

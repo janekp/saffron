@@ -144,6 +144,61 @@ class Macros {
 #end
     }
     
+    private static function contains(array : Array<Dynamic>, obj : Dynamic) : Bool {
+        for(item in array) {
+            if(item == obj) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private static function containsMeta(field : Field, name : String) : String {
+        for(meta in field.meta) {
+            if(meta.name == name) {
+                return (meta.params.length > 0) ? stringify(meta.params[0]) : '';
+            }
+        }
+        
+        return null;
+    }
+    
+    public static function buildPage() : Array<Field> {
+        var type = Context.getLocalClass().get();
+        var fields = Context.getBuildFields();
+        var autogen = new Array<Field>();
+        var render;
+        
+        for(field in fields) {
+            if(!contains(field.access, Access.AStatic)) {
+                if((render = containsMeta(field, ':render')) != null) {
+                    var _name = field.name;
+                    var expr = macro function(chunk : saffron.Template.TemplateChunk) : saffron.Template.TemplateChunk {
+                        return this.$_name().render(chunk);
+                    };
+                    var func : Function = switch(expr.expr) {
+                        case EFunction(_name, f):
+                            f;
+                        default:
+                            null;
+                    };
+                    
+                    autogen.push({
+                        name: (render.length > 0) ? render : 'render' + field.name.charAt(0).toUpperCase() + field.name.substring(1),
+                        pos: field.pos,
+                        meta: [ { name: ':keep', pos: field.pos, params: new Array<Expr>() } ],
+                        access: [ Access.APrivate ],
+                        doc: null,
+                        kind: FieldType.FFun(func)
+                    });
+                }
+            }
+        }
+        
+        return fields.concat(autogen);
+    }
+    
     public static function generateHandler(ethis : Expr, path : String, method : String, handler : Expr, auth : Expr) : Expr {
         var _auth = Macros.stringify(auth);
         var _perm = (_auth == 'auth_required' || _auth == 'auth_optional') ? Macros.stringifyInnerExpr(auth) : null;
@@ -212,6 +267,7 @@ class Macros {
         
         type = _Macros.typeToClass(Context.getType(_handler));
         
+        // addMetadata
         if(path == null || path == '*' || path == '/*') {
             path = '';
         }
