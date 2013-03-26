@@ -2,12 +2,11 @@
 
 package;
 
-import saffron.Template;
 import saffron.Widget;
 import saffron.widgets.*;
 
 class IndexPage extends Page {
-    private function findButton1() : Button {
+    @:render private function button1() : Button {
         return this.findWidgetById('button1', function(button : Button, id : String) : Widget {
             if(button == null) {
                 button = new Button(id);
@@ -19,11 +18,7 @@ class IndexPage extends Page {
         });
     }
     
-    @:keep private function button1(chunk : TemplateChunk) : TemplateChunk {
-        return this.findButton1().render(chunk);
-    }
-    
-    private function findList1() : TableView {
+    @:render private function list1() : TableView {
         return this.findWidgetById('list1', function(tableView : TableView, id : String) : Widget {
             if(tableView == null) {
                 tableView = new TableView(id);
@@ -35,11 +30,7 @@ class IndexPage extends Page {
         });
     }
     
-    @:keep private function list1(chunk : TemplateChunk) : TemplateChunk {
-        return this.findList1().render(chunk);
-    }
-    
-    private function findChoices1() : SingleChoiceButton {
+    @:render private function choices1() : SingleChoiceButton {
         return this.findWidgetById('choices1', function(choice : SingleChoiceButton, id : String) : Widget {
             if(choice == null) {
                 choice = new SingleChoiceButton(id);
@@ -57,11 +48,7 @@ class IndexPage extends Page {
         });
     }
     
-    @:keep private function choices1(chunk : TemplateChunk) : TemplateChunk {
-        return this.findChoices1().render(chunk);
-    }
-    
-    private function findChoices2() : SingleChoiceButton {
+    @:render private function choices2() : SingleChoiceButton {
         return this.findWidgetById('choices2', function(choice : SingleChoiceButton, id : String) : Widget {
             if(choice == null) {
                 choice = new SingleChoiceButton(id);
@@ -79,11 +66,7 @@ class IndexPage extends Page {
         });
     }
     
-    @:keep private function choices2(chunk : TemplateChunk) : TemplateChunk {
-        return this.findChoices2().render(chunk);
-    }
-    
-    private function findChoices3() : MultiChoiceButton {
+    @:render private function choices3() : MultiChoiceButton {
         return this.findWidgetById('choices3', function(choice : MultiChoiceButton, id : String) : Widget {
             if(choice == null) {
                 choice = new MultiChoiceButton(id);
@@ -97,9 +80,5 @@ class IndexPage extends Page {
             
             return choice;
         });
-    }
-    
-    @:keep private function choices3(chunk : TemplateChunk) : TemplateChunk {
-        return this.findChoices3().render(chunk);
     }
 }
