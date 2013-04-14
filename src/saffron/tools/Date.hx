@@ -1,6 +1,6 @@
-/* Copyright (c) 2012 Janek Priimann */
+/* Copyright (c) 2012 - 2013 Janek Priimann */
 
-package saffron;
+package saffron.tools;
 
 @:native("Date") extern class Date {
     @:overload(function(year : Int, month : Int, day : Int, hours : Int, minutes : Int, seconds : Int, milliseconds : Int) : Void {})
