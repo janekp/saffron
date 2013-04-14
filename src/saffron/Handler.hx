@@ -21,7 +21,7 @@ class Handler {
         return Macros.generateAsync(ethis, fn, parallel, nextTick);
     }
     
-    macro public function query(ethis : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+    macro public function query(ethis : Expr, q : Expr, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataQuery(ethis, q, p, fn);
     }
     

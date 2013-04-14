@@ -45,7 +45,7 @@ class Macros {
 #end
     }
     
-    public static function generateDataQuery(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
+    public static function generateDataQuery(ctx : Expr, q : Expr, p : Expr, fn : Expr) : Expr {
         return Adapter.generateDataQuery(ctx, q, p, fn);
     }
     

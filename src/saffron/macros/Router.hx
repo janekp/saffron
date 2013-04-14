@@ -193,8 +193,28 @@ private typedef RemoteDataHandler = {
         return Context.parse('{' + str + ';}', Context.currentPos());
     }
     
+    private static function stringifyDataQuery(query : Array<Dynamic>) : String {
+        var result = '';
+        var sep = '[';
+        
+        for(q in query) {
+            result += sep;
+            
+            if(Std.is(q, String)) {
+                result += '"' + Std.string(q).replace('"', '\"') + '"';
+            } else {
+                result += '{"L": ' + Router.stringifyDataQuery(q.left) + ', "R":' + Router.stringifyDataQuery(q.right) + '}';
+            }
+            
+            sep = ',';
+        }
+        
+        result += ']';
+        
+        return result;
+    }
     
-    static function addRemoteHandler(id : String, q : String, p : Expr) : Expr {
+    static function addRemoteHandler(id : String, query : Array<Dynamic>, p : Expr) : Expr {
         var file = Compiler.getOutput() + '.calls';
         var fout = (Router.remoteDataHandlers == null) ? File.write(file, false) : File.append(file, false);
         
@@ -203,6 +223,7 @@ private typedef RemoteDataHandler = {
         }
         
         if(!Router.remoteDataHandlers.get(id)) {
+            var q = '';
             var a = null;
             
             if(switch(p.expr) { case EConst(_c): false; default: true; }) {
@@ -210,7 +231,13 @@ private typedef RemoteDataHandler = {
                 a = 'I';
             }
             
-            fout.writeString('{ id: "' + id + '", query: "' + q + '", args: ' + ((a != null) ? '"' + a + '"' : 'null') + ' },\n');
+            if(query.length == 1 && Std.is(query[0], String)) {
+                q = '"' + Std.string(query[0]).replace('"', '\"') + '"';
+            } else {
+                q = stringifyDataQuery(query);
+            }
+            
+            fout.writeString('{ id: "' + id + '", query: ' + q + ', args: ' + ((a != null) ? '"' + a + '"' : 'null') + ' },\n');
             fout.close();
             
             Router.remoteDataHandlers.set(id, true);

@@ -31,12 +31,28 @@ typedef DataError = {
     }
 }
 
+#if client
+
+typedef DataAdapterQuery = {
+    var id : String;
+    var params : String;
+}
+
+typedef DataAdapter = {
+    @:overload(function(q : DataAdapterQuery, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {})
+    function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void;
+}
+
+#else
+
 typedef DataAdapter = {
     function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void;
 }
 
+#end
+
 class Data {
-    macro public static function query(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
+    macro public static function query(ctx : Expr, q : Expr, p : Expr, ?fn : Expr) : Expr {
         return Macros.generateDataQuery(ctx, q, p, fn);
     }
     
@@ -78,17 +94,27 @@ class Data {
             exec: function(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {
                 
             },
-            query: function(q : String, ?p : Array<Dynamic>, fn : DataError -> Array<Dynamic> -> Void) : Void {
+            query: function(qr : Dynamic, ?p : Array<Dynamic>, fn : DataError -> Array<Dynamic> -> Void) : Void {
+                var ix : String = null;
+                var id : String;
+                
+                if(__js__("typeof(q) === 'string'")) {
+                    id = q;
+                } else {
+                    id = q.id;
+                    ix = q.params;
+                }
+                
                 if(__js__("typeof(p) === 'function'")) {
                     fn = p;
                     p = null;
                 }
                 
                 jQuery.ajax({
-                    url: saffron.Client.context.remote_prefix + q,
+                    url: saffron.Client.context.remote_prefix + id,
                     type: 'POST',
-                    data: { v: (p != null) ? p[0] : ''
-                } }).done(function(data) {
+                    data: { v: (p != null) ? p[0] : '', x: ix }
+                }).done(function(data) {
                     if(__js__("typeof(data) === 'object'")) {
                         fn(data.error, data.results);
                     } else {
