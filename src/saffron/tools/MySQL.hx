@@ -1,6 +1,6 @@
 /* Copyright (c) 2012 - 2013 Janek Priimann */
 
-package saffron;
+package saffron.tools;
 
 #if !client
 
@@ -9,15 +9,15 @@ import saffron.Data;
 import saffron.Environment;
 
 typedef MySQLOptions = {
-    var host : String;
-    var port : Int;
-    var user : String;
-    var password : String;
-    var database : String;
+    ?host : String,
+    ?port : Int,
+    ?user : String,
+    ?password : String,
+    ?database : String
 }
 
 typedef MySQLPoolOptions = { > MySQLOptions,
-    var poolSize : Int;
+    poolSize : Int
 }
 
 extern class MySQL {
@@ -28,16 +28,20 @@ extern class MySQL {
     
     private static function __init__() : Void untyped {
         try {
-            saffron.MySQL = Node.require("mysql");
+            if(saffron.tools == null) {
+                saffron.tools = { };
+            }
+            
+            saffron.tools.MySQL = Node.require("mysql");
             
 #if debug
-            saffron.MySQL.catchError = function(q, p, err) {
+            saffron.tools.MySQL.catchError = function(q, p, err) {
                 trace('{ query: "' + q + '", params: ' + saffron.Environment.JSON.stringify(p) + ' , error: "' + err + '" }');
             };
 #end
             
-            saffron.MySQL.poolAdapters = { };
-            saffron.MySQL.createConnectionFromPool = function(options) {
+            saffron.tools.MySQL.poolAdapters = { };
+            saffron.tools.MySQL.createConnectionFromPool = function(options) {
                 var key = '' + options.host + ':' + options.port + ':' + options.user + ':' + options.password + ':' + options.database;
                 var adapter = saffron.MySQL.poolAdapters[key];
                 
@@ -48,7 +52,7 @@ extern class MySQL {
                         idleTimeoutMillis: 30000,
                         log: false,
                         create: function(fn) {
-                            fn(saffron.MySQL.createConnection(options));
+                            fn(saffron.tools.MySQL.createConnection(options));
                         },
                         destroy: function(connection) {
                             connection.destroy();
@@ -65,16 +69,16 @@ extern class MySQL {
                             
                             adapter.pool.acquire(function(err, connection) {
                                 if(err) {
-                                    if(saffron.MySQL.catchError != null) {
-                                        saffron.MySQL.catchError(q, p, err);
+                                    if(saffron.tools.MySQL.catchError != null) {
+                                        saffron.tools.MySQL.catchError(q, p, err);
                                     }
                                     
 				                    fn(err, null);
 				                } else {
 				                    connection.query(q, p, function(err, result) {
 				                        __js__("try {");
-				                        if(err != null && saffron.MySQL.catchError != null) {
-                                            saffron.MySQL.catchError(q, p, err);
+				                        if(err != null && saffron.tools.MySQL.catchError != null) {
+                                            saffron.tools.MySQL.catchError(q, p, err);
                                         }
 				                        fn(err, result);
 				                        __js__("} finally { ");
@@ -86,7 +90,7 @@ extern class MySQL {
                         }
                     };
                     
-                    saffron.MySQL.poolAdapters[key] = adapter;
+                    saffron.tools.MySQL.poolAdapters[key] = adapter;
                 }
                 
                 return adapter;
