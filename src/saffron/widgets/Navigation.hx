@@ -75,7 +75,7 @@ class Navigation extends Widget {
             
             while(i < c) {
                 item = this.items[i];
-                chunk = chunk.write('<li' + ((i == s) ? ' class="selected">' : '>') + '<a href="' + Text.escapeHtml(item.action) + '">' + Utils.escapeHtml(item.title) + '</a></li>');
+                chunk = chunk.write('<li' + ((i == s) ? ' class="selected">' : '>') + '<a href="' + Text.escapeHtml(item.action) + '">' + Text.escapeHtml(item.title) + '</a></li>');
                 i++;
             }
         }
