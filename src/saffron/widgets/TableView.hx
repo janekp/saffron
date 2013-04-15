@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;
@@ -31,7 +32,7 @@ class TableView extends saffron.widgets.data.View {
             action = data.value;
         }
         
-        title = Utils.escapeHtml(title);
+        title = Text.escapeHtml(title);
         
         return chunk.write((action != null)
             ? '<div class="table-row' + ((row % 2 == 1) ? ' alt' : '') + '"><a href="' + action + '">' + title + '</a></div>'

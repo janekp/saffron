@@ -43,7 +43,7 @@ extern class MySQL {
             saffron.tools.MySQL.poolAdapters = { };
             saffron.tools.MySQL.createConnectionFromPool = function(options) {
                 var key = '' + options.host + ':' + options.port + ':' + options.user + ':' + options.password + ':' + options.database;
-                var adapter = saffron.MySQL.poolAdapters[key];
+                var adapter = saffron.tools.MySQL.poolAdapters[key];
                 
                 if(adapter == null) {
                     var pOptions = {

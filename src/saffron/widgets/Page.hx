@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;

@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;
@@ -87,7 +88,7 @@ class Layout extends Container {
             klass = klass + ' right';
         }
         
-        chunk = chunk.write('<div' + Utils.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="' + klass + '">');
+        chunk = chunk.write('<div' + Text.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="' + klass + '">');
         
         if(this.children != null) {
             for(child in this.children) {

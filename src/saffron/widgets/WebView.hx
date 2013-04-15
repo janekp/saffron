@@ -2,6 +2,7 @@
 
 package saffron.widgets;
 
+import saffron.tools.Text;
 import saffron.Template;
 
 class WebView extends Widget {
@@ -23,7 +24,7 @@ class WebView extends Widget {
         var html = this.getHtml();
         
         return chunk.write('<div' +
-            Utils.escapeHtmlParamUnsafe(' id', this.getId()) + 
-            Utils.escapeHtmlParamUnsafe(' class', this.getClass()) + '>' + ((html != null) ? html : '') + '</div>');
+            Text.escapeHtmlParamUnsafe(' id', this.getId()) + 
+            Text.escapeHtmlParamUnsafe(' class', this.getClass()) + '>' + ((html != null) ? html : '') + '</div>');
     }
 }

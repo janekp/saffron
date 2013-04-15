@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;
@@ -52,8 +53,8 @@ class SingleChoiceButton extends saffron.widgets.data.View {
             value = data.value;
         }
         
-        title = Utils.escapeHtml(title);
-        value =  Utils.escapeHtml(value);
+        title = Text.escapeHtml(title);
+        value =  Text.escapeHtml(value);
         
         return (this.getType() == type_popup)
             ? chunk.write(

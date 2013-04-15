@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;
@@ -66,7 +67,7 @@ class Navigation extends Widget {
     }
     
     public override function render(chunk : TemplateChunk) : TemplateChunk {
-        chunk = chunk.write('<ul' + Utils.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="navigation">');
+        chunk = chunk.write('<ul' + Text.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="navigation">');
         
         if(this.items != null) {
             var i = 0, c = this.items.length, s = this.getSelectedIndex();
@@ -74,7 +75,7 @@ class Navigation extends Widget {
             
             while(i < c) {
                 item = this.items[i];
-                chunk = chunk.write('<li' + ((i == s) ? ' class="selected">' : '>') + '<a href="' + Utils.escapeHtml(item.action) + '">' + Utils.escapeHtml(item.title) + '</a></li>');
+                chunk = chunk.write('<li' + ((i == s) ? ' class="selected">' : '>') + '<a href="' + Text.escapeHtml(item.action) + '">' + Utils.escapeHtml(item.title) + '</a></li>');
                 i++;
             }
         }

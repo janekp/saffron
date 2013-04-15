@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;
@@ -34,8 +35,8 @@ class MultiChoiceButton extends saffron.widgets.data.View {
             value = data.value;
         }
         
-        title = Utils.escapeHtml(title);
-        value =  Utils.escapeHtml(value);
+        title = Text.escapeHtml(title);
+        value =  Text.escapeHtml(value);
         
         return chunk.write(
             '<label for="' + this.getId() + '_' + row + '">' + 

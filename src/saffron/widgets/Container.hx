@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;
@@ -24,7 +25,7 @@ class Container extends Widget {
     }
     
     public override function render(chunk : TemplateChunk) : TemplateChunk {
-        chunk = chunk.write('<div' + Utils.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="container">');
+        chunk = chunk.write('<div' + Text.escapeHtmlParamUnsafe(' id', this.getId()) + ' class="container">');
         
         if(this.children != null) {
             for(child in this.children) {

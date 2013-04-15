@@ -34,7 +34,7 @@ extern class Connect {
             }
             
             saffron.tools.Connect = Node.require("connect");
-            saffron.tools.Connect.staticFiles = untyped __js__('saffron.Connect.static');
+            saffron.tools.Connect.staticFiles = untyped __js__('saffron.tools.Connect.static');
         }
         catch(e : Dynamic) {
         }

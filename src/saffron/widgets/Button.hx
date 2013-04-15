@@ -3,6 +3,7 @@
 package saffron.widgets;
 
 import saffron.Template;
+import saffron.tools.Text;
 
 #if !client
 import js.Node;
@@ -37,6 +38,6 @@ class Button extends Widget {
             '<a id="' + this.getId() + '" class="button' +
             ((this.getClass() != null) ? ' ' + this.getClass() + '"' : '"') +
             ((this.getAction() != null) ? ' href="' + this.getAction() + '"' : ' href="#"') +
-            '>' + Utils.escapeHtml(this.getTitle()) + '</a>');
+            '>' + Text.escapeHtml(this.getTitle()) + '</a>');
     }
 }
