@@ -6,7 +6,7 @@ import haxe.rtti.Meta;
 import saffron.tools.Jasmine;
 
 typedef RunnerOptions = {
-    ?reporter : String -> Void,
+    ?logger : String -> Void,
     ?updateInterval : Int
 }
 
@@ -30,7 +30,7 @@ typedef RunnerOptions = {
             fn(env);
         } else {
             env.updateInterval = (this.options.updateInterval != null) ? this.options.updateInterval : 250;
-            env.addReporter(Jasmine.createConsoleReporter((this.options.reporter != null) ? this.options.reporter : function(str) { trace(str); }));
+            env.addReporter(Jasmine.createConsoleReporter((this.options.logger != null) ? this.options.logger : function(str) { trace(str); }));
         }
         
         for(suite in this.suites) {
