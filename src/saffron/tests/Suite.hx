@@ -11,12 +11,39 @@ import saffron.tools.Jasmine;
         this._env = env;
     }
     
-    public function beforeEach() : Void {
+    public function before() : Void {
     }
     
-    public function afterEach() : Void {
+    public function after() : Void {
     }
     
+    public function run() : Void {
+    }
+    
+    private inline function beforeEach(fn : Void -> Void) : Void {
+        return this._env.beforeEach(fn);
+    }
+    
+    private inline function afterEach(fn : Void -> Void) : Void {
+        return this._env.afterEach(fn);
+    }
+    
+    private inline function describe(description : String, fn : Void -> Void) : Void {
+        this._env.describe(description, fn);
+    }
+    
+    private inline function xdescribe(description : String, fn : Void -> Void) : Void {
+        this._env.xdescribe(description, fn);
+    }
+    
+	private inline function it(description : String, fn : Void -> Void) : Void {
+	    this._env.it(description, fn);
+	}
+	
+	private inline function xit(description : String, fn : Void -> Void) : Void {
+	    this._env.xit(description, fn);
+	}
+	
     private inline function expect(value : Dynamic) : JasmineMatchers {
         return this._env.currentSpec.expect(value);
     }

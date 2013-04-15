@@ -4,6 +4,7 @@ package saffron.tests;
 
 import haxe.rtti.Meta;
 import saffron.tools.Jasmine;
+import js.Node;
 
 typedef RunnerOptions = {
     ?logger : String -> Void,
@@ -11,12 +12,14 @@ typedef RunnerOptions = {
 }
 
 @:require(test) @:keepSub class Runner {
-    private var suites : Array<Dynamic>;
+    private var error : Bool;
     private var options : RunnerOptions;
+    private var suites : Array<Dynamic>;
     
     public function new(?options : RunnerOptions) {
-        this.suites = new Array<Dynamic>();
+        this.error = false;
         this.options = (options != null) ? options : { };
+        this.suites = new Array<Dynamic>();
     }
     
     public function addSuite(suite : Dynamic) : Void {
@@ -30,17 +33,53 @@ typedef RunnerOptions = {
             fn(env);
         } else {
             env.updateInterval = (this.options.updateInterval != null) ? this.options.updateInterval : 250;
-            env.addReporter(Jasmine.createConsoleReporter((this.options.logger != null) ? this.options.logger : function(str) { trace(str); }));
+            env.addReporter(Jasmine.createTerminalReporter({
+                color: true,
+                includeStackTrace: false,
+                onComplete: function(runner, log) {
+                    this.error = (runner.results().failedCount != 0) ? true : false;
+                }
+            }));
         }
         
+        env.beforeEach(function() {
+            this.before();
+        });
+        
         for(suite in this.suites) {
-            this.describe(env, suite);
+            this.run(env, suite);
         }
+        
+        env.afterEach(function() {
+            this.after();
+        });
         
         env.execute();
     }
     
-    private function describe(env : JasmineEnv, klass : Dynamic) : Void {
+    public function wait(fn : Int -> Void) : Void {
+        var cb : Dynamic = { };
+        
+        cb.uncaughtException = function() : Void {
+            Node.process.removeListener('uncaughtException', cb.uncaughtException);
+            this.error = true;
+        };
+        cb.exit = function() : Void {
+            Node.process.removeListener('exit', cb.exit);
+            fn((this.error) ? 1 : 0);
+        };
+        
+        Node.process.on('uncaughtException', cb.uncaughtException);
+        Node.process.on('exit', cb.exit);
+    }
+    
+    private function before() : Void {
+    }
+    
+    private function after() : Void {
+    }
+    
+    private function run(env : JasmineEnv, klass : Dynamic) : Void {
         var meta = Meta.getType(klass);
         var suite : Suite = Type.createInstance(klass, [ env ]);
         var fields = Meta.getFields(klass);
@@ -50,7 +89,7 @@ typedef RunnerOptions = {
         
         env.describe((meta.suite != null) ? meta.suite.join('') : Type.getClassName(klass), function() {
             env.beforeEach(function() {
-                suite.beforeEach();
+                suite.before();
             });
             
             for(field in Reflect.fields(fields)) {
@@ -67,8 +106,10 @@ typedef RunnerOptions = {
             }
             
             env.afterEach(function() {
-                suite.afterEach();
+                suite.after();
             });
+            
+            suite.run();
         });
     }
 }
