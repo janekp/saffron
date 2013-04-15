@@ -47,7 +47,7 @@ typedef JasmineReporter = {
 typedef JasmineSpec = { > JasmineMatchers,
 	function expect(value : Dynamic) : JasmineMatchers;
 	function runs(fn : Void -> Void) : Void;
-	function waits(timeoutMilliseconds : Int) : Void;
+	function waits(timeout : Int) : Void;
 	function waitsFor(fn : Void -> Bool, ?msg : String, ?timeout : Int) : Void;
 	function spyOn(x : Dynamic, method : String) : JasmineSpy;
 }

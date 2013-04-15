@@ -6,8 +6,6 @@ import haxe.rtti.Meta;
 import saffron.tools.Jasmine;
 
 @:require(test) @:keepSub class Runner {
-    private static var sharedSuites : Array<Dynamic> = null;
-    
     private var suites : Array<Dynamic> = null;
     
     public function new() {
