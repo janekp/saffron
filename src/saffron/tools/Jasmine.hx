@@ -6,6 +6,11 @@ package saffron.tools;
 
 import js.Node;
 
+typedef JasmineClock = {
+    function reset() : Void;
+    function tick(interval : Int) : Void;
+}
+
 typedef JasmineMatchers = {
     var not(default, null) : JasmineMatchers;
     
@@ -44,6 +49,14 @@ typedef JasmineReporter = {
     function log(line : String) : Void;
 }
 
+typedef JasmineRunner = {
+    function results() : JasmineRunnerResults;
+}
+
+typedef JasmineRunnerResults = {
+    var failedCount(default, null) : Int;
+}
+
 typedef JasmineSpec = { > JasmineMatchers,
 	function expect(value : Dynamic) : JasmineMatchers;
 	function runs(fn : Void -> Void) : Void;
@@ -63,10 +76,21 @@ typedef JasmineSpy = {
 	function reset() : Void;
 }
 
+typedef JasmineTerminalReporterOptions = {
+    ?print : String -> Void,
+    ?color : Bool,
+    ?includeStackTrace : Bool,
+    ?onComplete : JasmineRunner -> Dynamic -> Void,
+    ?stackFilter : Dynamic
+}
+
 extern class Jasmine {
+    public static var Clock : JasmineClock;
+    
     public static function getEnv() : JasmineEnv;
-    public static function createConsoleReporter(fn : String -> Void) : JasmineReporter;
+    public static function createConsoleReporter() : JasmineReporter;
     public static function createHtmlReporter() : JasmineReporter;
+    public static function createTerminalReporter(?options : JasmineTerminalReporterOptions) : JasmineReporter;
     public static function createSpy() : JasmineSpy;
     
     private static function __init__() : Void untyped {
@@ -81,6 +105,9 @@ extern class Jasmine {
             };
             saffron.tools.Jasmine.createHtmlReporter = function() {
                 return __js__('new (saffron.tools.Jasmine.HtmlReporter)')();
+            };
+            saffron.tools.Jasmine.createTerminalReporter = function(options) {
+                return __js__('new (saffron.tools.Jasmine.TerminalReporter)')(options);
             };
         }
         catch(e : Dynamic) {
