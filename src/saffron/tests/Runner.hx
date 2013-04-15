@@ -6,6 +6,8 @@ import haxe.rtti.Meta;
 import saffron.tools.Jasmine;
 import js.Node;
 
+using StringTools;
+
 typedef RunnerOptions = {
     ?logger : String -> Void,
     ?updateInterval : Int
@@ -24,6 +26,25 @@ typedef RunnerOptions = {
     
     public function addSuite(suite : Dynamic) : Void {
         this.suites.push(suite);
+    }
+    
+    public function addSuites(name : String) : Void {
+        var matchPrefix : Bool = false;
+        
+        if(name == null) {
+            name = '';
+        }
+        
+        if(name.endsWith('*')) {
+            name = name.substring(0, name.length - 1);
+            matchPrefix = true;
+        }
+        
+        for(suite in Suite.all.keys()) {
+            if((matchPrefix && suite.startsWith(name)) || (!matchPrefix && suite == name)) {
+                this.addSuite(Suite.all.get(suite));
+            }
+        }
     }
     
     public function execute(?fn : JasmineEnv -> Void) : Void {

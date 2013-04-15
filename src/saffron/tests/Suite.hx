@@ -4,7 +4,9 @@ package saffron.tests;
 
 import saffron.tools.Jasmine;
 
-@:require(test) @:keepSub class Suite {
+@:autoBuild(saffron.macros.Builder.generateSuite()) @:require(test) @:keepSub class Suite {
+    public static var all : Map<String, Dynamic>;
+    
     private var _env : JasmineEnv;
     
     public function new(env : JasmineEnv) {
@@ -62,5 +64,9 @@ import saffron.tools.Jasmine;
 	
 	private inline function spyOn(x : Dynamic, method : String) : JasmineSpy {
 	    return this._env.currentSpec.spyOn(x, method);
+	}
+	
+	private static function __init__() : Void {
+	    Suite.all = new Map<String, Dynamic>();
 	}
 }
