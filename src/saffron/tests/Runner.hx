@@ -9,7 +9,7 @@ import js.Node;
 using StringTools;
 
 typedef RunnerOptions = {
-    ?logger : String -> Void,
+    ?print : String -> Void,
     ?updateInterval : Int
 }
 
@@ -59,7 +59,8 @@ typedef RunnerOptions = {
                 includeStackTrace: false,
                 onComplete: function(runner, log) {
                     this.error = (runner.results().failedCount != 0) ? true : false;
-                }
+                },
+                print: this.options.print
             }));
         }
         
