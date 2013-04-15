@@ -8,6 +8,7 @@ package saffron;
 import js.Node;
 import saffron.Multipart;
 import saffron.Template;
+import saffron.tools.Connect;
 #else
 import haxe.macro.Context;
 import haxe.macro.Expr;

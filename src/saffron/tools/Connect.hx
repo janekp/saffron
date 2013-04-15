@@ -1,6 +1,6 @@
-/* Copyright (c) 2012 Janek Priimann */
+/* Copyright (c) 2012 - 2013 Janek Priimann */
 
-package saffron;
+package saffron.tools;
 
 #if !client
 
@@ -29,8 +29,12 @@ extern class Connect {
     
     private static function __init__() : Void untyped {
         try {
-            saffron.Connect = Node.require("connect");
-            saffron.Connect.staticFiles = untyped __js__('saffron.Connect.static');
+            if(saffron.tools == null) {
+                saffron.tools = { };
+            }
+            
+            saffron.tools.Connect = Node.require("connect");
+            saffron.tools.Connect.staticFiles = untyped __js__('saffron.Connect.static');
         }
         catch(e : Dynamic) {
         }
