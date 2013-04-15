@@ -5,11 +5,18 @@ package saffron.tests;
 import haxe.rtti.Meta;
 import saffron.tools.Jasmine;
 
+typedef RunnerOptions = {
+    ?reporter : String -> Void,
+    ?updateInterval : Int
+}
+
 @:require(test) @:keepSub class Runner {
-    private var suites : Array<Dynamic> = null;
+    private var suites : Array<Dynamic>;
+    private var options : RunnerOptions;
     
-    public function new() {
+    public function new(?options : RunnerOptions) {
         this.suites = new Array<Dynamic>();
+        this.options = (options != null) ? options : { };
     }
     
     public function addSuite(suite : Dynamic) : Void {
@@ -22,10 +29,8 @@ import saffron.tools.Jasmine;
         if(fn != null) {
             fn(env);
         } else {
-            env.updateInterval = 250;
-            env.addReporter(Jasmine.createConsoleReporter(function(str) {
-                trace(str);
-            }));
+            env.updateInterval = (this.options.updateInterval != null) ? this.options.updateInterval : 250;
+            env.addReporter(Jasmine.createConsoleReporter((this.options.reporter != null) ? this.options.reporter : function(str) { trace(str); }));
         }
         
         for(suite in this.suites) {
