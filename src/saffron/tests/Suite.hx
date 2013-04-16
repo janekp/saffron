@@ -2,6 +2,7 @@
 
 package saffron.tests;
 
+import js.Node;
 import saffron.tools.Jasmine;
 
 @:autoBuild(saffron.macros.Builder.generateSuite()) @:require(test) @:keepSub class Suite {
