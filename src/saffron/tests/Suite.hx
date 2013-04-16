@@ -22,6 +22,45 @@ import saffron.tools.Jasmine;
     public function run() : Void {
     }
     
+    private function requests(options : HelperRequestOptions, params : Dynamic, fn : Int -> Dynamic -> String -> Void) : Void {
+        var complete = false;
+        
+        runs(function() {
+            Helper.request(options, params, function(status, data, type) {
+                complete = true;
+                fn(status, data, type);
+            });
+        });
+        
+        waitsFor(function() {
+            return complete;
+        });
+    }
+    
+    private function gets(str : String, ?params : Dynamic, fn : Int -> Dynamic -> String -> Void) : Void {
+        var url = Node.url.parse(str, false);
+        
+        requests({
+            protocol: url.protocol,
+            host: url.host,
+            port: Std.parseInt(url.port),
+            path: untyped url.path,
+            method: 'GET'
+        }, params, fn);
+    }
+    
+    private function posts(str : String, ?params : Dynamic, fn : Int -> Dynamic -> String -> Void) : Void {
+        var url = Node.url.parse(str, false);
+        
+        requests({
+            protocol: url.protocol,
+            host: url.host,
+            port: Std.parseInt(url.port),
+            path: untyped url.path,
+            method: 'POST'
+        }, params, fn);
+    }
+    
     private inline function beforeEach(fn : Void -> Void) : Void {
         return this._env.beforeEach(fn);
     }
