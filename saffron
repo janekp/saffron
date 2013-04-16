@@ -955,7 +955,7 @@ if(launchMode == null) {
     process.stdout.write('  saffron monitor start\n\n');
     process.stdout.write('Launch options:\n');
     process.stdout.write('  -c PATH\tConfig file\n');
-    process.stdout.write('  -D [A]:[K]=[V]\tOverride config\n');
+    process.stdout.write('  -D [A]:K=V\tOverride config\n');
     process.stdout.write('  --verbose\tVerbose mode\n');
     process.stdout.write('  --deploy\tDeployment mode\n');
     process.stdout.write('  --version\tPrint version\n\n');
