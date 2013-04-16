@@ -388,7 +388,6 @@ var Config = {
                 
                 if(app != null) {
                     for(m in State.overrides[l]) {
-                        console.log(m);
                         app[m] = State.overrides[l][m];
                     }
                 }
