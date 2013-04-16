@@ -9,6 +9,7 @@ import js.Node;
 using StringTools;
 
 typedef RunnerOptions = {
+    ?filename : String,
     ?print : String -> Void,
     ?updateInterval : Int
 }
@@ -54,14 +55,19 @@ typedef RunnerOptions = {
             fn(env);
         } else {
             env.updateInterval = (this.options.updateInterval != null) ? this.options.updateInterval : 250;
-            env.addReporter(Jasmine.createTerminalReporter({
-                color: true,
-                includeStackTrace: false,
-                onComplete: function(runner, log) {
-                    this.error = (runner.results().failedCount != 0) ? true : false;
-                },
-                print: this.options.print
-            }));
+            
+            if(this.options.filename != null) {
+                env.addReporter(Jasmine.createJUnitXmlReporter(this.options.filename, true, true));
+            } else {
+                env.addReporter(Jasmine.createTerminalReporter({
+                    color: true,
+                    includeStackTrace: false,
+                    onComplete: function(runner, log) {
+                        this.error = (runner.results().failedCount != 0) ? true : false;
+                    },
+                    print: this.options.print
+                }));
+            }
         }
         
         env.beforeEach(function() {
@@ -119,10 +125,10 @@ typedef RunnerOptions = {
                 
                 if(Reflect.hasField(m, 'spec')) {
                     var method : Void -> Void = Reflect.field(suite, field);
-                    var name = Reflect.field(m, 'spec');
+                    var name : Array<String> = Reflect.field(m, 'spec');
                     
                     if(method != null) {
-                        wrap((name != null) ? name : field, method);
+                        wrap((name != null) ? name.join('') : field, method);
                     }
                 }
             }
