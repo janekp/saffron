@@ -90,6 +90,7 @@ extern class Jasmine {
     public static function getEnv() : JasmineEnv;
     public static function createConsoleReporter() : JasmineReporter;
     public static function createHtmlReporter() : JasmineReporter;
+    public static function createJUnitXmlReporter(savePath : String, ?consolidate : Bool = true, ?useDotNotation : Bool = true) : JasmineReporter;
     public static function createTerminalReporter(?options : JasmineTerminalReporterOptions) : JasmineReporter;
     public static function createSpy() : JasmineSpy;
     
@@ -105,6 +106,9 @@ extern class Jasmine {
             };
             saffron.tools.Jasmine.createHtmlReporter = function() {
                 return __js__('new (saffron.tools.Jasmine.HtmlReporter)')();
+            };
+            saffron.tools.Jasmine.createJUnitXmlReporter = function(savePath, consolidate, useDotNotation) {
+                return __js__('new (saffron.tools.Jasmine.JUnitXmlReporter)')(savePath, consolidate, useDotNotation);
             };
             saffron.tools.Jasmine.createTerminalReporter = function(options) {
                 return __js__('new (saffron.tools.Jasmine.TerminalReporter)')(options);
