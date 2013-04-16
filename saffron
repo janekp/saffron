@@ -42,6 +42,7 @@ var CONST = {
 var State = {
     apps: { },
     config: null,
+    overrides: { },
     debug: true,
     root: null,
     verbose: false,
@@ -345,7 +346,7 @@ var Config = {
     read: function(p) {
         try {
             var config = JSON.parse(fs.readFileSync(p, { encoding: 'utf8' }));
-            var i, c;
+            var i, c, l, m, app;
             
             if(config.apps == null) {
                 config.apps = [];
@@ -356,7 +357,7 @@ var Config = {
             }
             
             for(i = 0, c = config.apps; i < c; i++) {
-                var app = config.apps[i];
+                app = config.apps[i];
                 
                 if(typeof(app) != 'object') {
                     throw 'app must be a dictionary';
@@ -368,6 +369,28 @@ var Config = {
                 
                 if(typeof(app.main) != 'string') {
                     throw 'app "main" is invalid (' + JSON.stringify(app.main) + ')';
+                }
+            }
+            
+            for(l in State.overrides) {
+                if(l == '*') {
+                    app = config;
+                } else {
+                    app = null;
+                    
+                    for(i = 0, c = config.apps.length; i < c; i++) {
+                        if(config.apps[i].name == l) {
+                            app = config.apps[i];
+                            break;
+                        }
+                    }
+                }
+                
+                if(app != null) {
+                    for(m in State.overrides[l]) {
+                        console.log(m);
+                        app[m] = State.overrides[l][m];
+                    }
                 }
             }
             
@@ -818,7 +841,8 @@ Application.prototype.start_watch = function(nowatch) {
     if(this.status == CONST.STATUS_CRASHED || this.status == CONST.STATUS_EXITED) {
         this.status = CONST.STATUS_STARTED;
         this.startProcess();
-    } else if(this.status == CONST.STATUS_STOPPED) {
+    } else if(this.status == CONST.STATUS_STOPPED ||
+             (this.type == CONST.TYPE_TEST && this.status == CONST.STATUS_ERROR)) {
         var that = this;
         
         State.lock();
@@ -868,6 +892,8 @@ process.argv.forEach(function(arg) {
     if(parseState == 0) {
         if(arg == '-c' || arg == '--config') {
             parseState = 1;
+        } else if(arg == '-D') {
+            parseState = 3;
         } else if(arg == '--deploy') {
             State.debug = false;
         } else if(arg == '-h' || arg == '--help') {
@@ -890,6 +916,34 @@ process.argv.forEach(function(arg) {
         parseState = 0;
     } else if(parseState == 2) {
         launchArguments.push(arg);
+    } else if(parseState == 3) {
+        var kv = arg.split(':');
+        var app = '*';
+        var key = '';
+        
+        if(kv.length > 1) {
+            app = kv[0];
+            kv = kv.slice(1).join(':');
+        } else {
+            kv = arg;
+        }
+        
+        kv = kv.split('=');
+        
+        if(kv.length > 1) {
+            key = kv[0];
+            kv = kv.slice(1).join('=').replace(/^\"|\"$/g, '');
+        } else {
+            key = arg;
+            kv = '';
+        }
+        
+        if(!State.overrides[app]) {
+            State.overrides[app] = { };
+        }
+        
+        State.overrides[app][key] = kv;
+        parseState = 0;
     }
 });
 
@@ -902,6 +956,7 @@ if(launchMode == null) {
     process.stdout.write('  saffron monitor start\n\n');
     process.stdout.write('Launch options:\n');
     process.stdout.write('  -c PATH\tConfig file\n');
+    process.stdout.write('  -D [A]:[K]=[V]\tOverride config\n');
     process.stdout.write('  --verbose\tVerbose mode\n');
     process.stdout.write('  --deploy\tDeployment mode\n');
     process.stdout.write('  --version\tPrint version\n\n');
