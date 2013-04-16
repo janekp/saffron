@@ -51,7 +51,7 @@ typedef HelperRequestOptions = {
             method: (options.method != null) ? options.method : 'GET',
             headers: (options.headers != null) ? options.headers : { }
         };
-        trace(opt);
+        
         var request = Node.http.request(opt, function(response) {
             var data = '';
             
