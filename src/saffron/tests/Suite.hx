@@ -23,7 +23,7 @@ import saffron.tools.Jasmine;
     public function run() : Void {
     }
     
-    private function requests(options : HelperRequestOptions, params : Dynamic, fn : Int -> Dynamic -> String -> Void) : Void {
+    private function requests(options : Helper.HelperRequestOptions, params : Dynamic, fn : Int -> Dynamic -> String -> Void) : Void {
         var complete = false;
         
         runs(function() {
