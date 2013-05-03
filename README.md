@@ -86,7 +86,8 @@ Install
     
     # Optional dependencies
     sudo npm install -g dustjs-linkedin
-    sudo npm install -g connect cookies mysql@2.0.0-alpha3 generic-pool mapstrace formidable@latest
+    sudo npm install -g connect cookies mysql generic-pool mapstrace formidable@latest
+    sudo npm install -g jasmine-node winston send
     
     # Node can't find modules?
     sudo npm link <MODULENAME>
