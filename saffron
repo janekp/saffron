@@ -122,9 +122,12 @@ var Monitor = {
                 p = path.join(dir, paths[i]);
                 s = fs.statSync(p);
                 
-                if(s != null && s.isDirectory()) {
-                    results.push(p);
-                    this.findAllSubdirectories(p, results);
+                if(s != null) {
+                	results.push(p);
+                    
+                	if(s.isDirectory()) {
+                    	this.findAllSubdirectories(p, results);
+                	}
                 }
             }
         }
