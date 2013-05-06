@@ -11,9 +11,19 @@ import saffron.Environment;
 typedef MySQLOptions = {
     ?host : String,
     ?port : Int,
+    ?socketPath : String,
     ?user : String,
     ?password : String,
-    ?database : String
+    ?database : String,
+    ?charset : String,
+    ?debug : Bool,
+    ?insecureAuth : Bool,
+    ?multipleStatements : Bool,
+    ?queryFormat : String -> Array<Dynamic> -> String,
+    ?supportBigNumbers : Bool,
+    ?bigNumberStrings : Bool,
+    ?timezone : String,
+    ?typeCast : Bool
 }
 
 typedef MySQLPoolOptions = { > MySQLOptions,
@@ -42,7 +52,7 @@ extern class MySQL {
             
             saffron.tools.MySQL.poolAdapters = { };
             saffron.tools.MySQL.createConnectionFromPool = function(options) {
-                var key = '' + options.host + ':' + options.port + ':' + options.user + ':' + options.password + ':' + options.database;
+                var key = '' + options.host + ':' + options.port + ':' + options.socketPath + ':' + options.user + ':' + options.password + ':' + options.database;
                 var adapter = saffron.tools.MySQL.poolAdapters[key];
                 
                 if(adapter == null) {
