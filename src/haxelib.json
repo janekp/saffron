@@ -1,0 +1,13 @@
+{
+  "name": "saffron",
+  "url": "https://github.com/janekp/saffron",
+  "license": "MIT",
+  "tags": [ "client", "server", "web", "framework", "js", "javascript", "nodejs" ],
+  "description": "Web-development framework for NodeJS/Haxe",
+  "version": "0.1.0",
+  "releasenote": "The initial functional prototype",
+  "contributors": [ "janekp" ],
+  "dependencies": {
+    "nodejs": ""
+  }
+}
