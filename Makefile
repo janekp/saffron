@@ -6,7 +6,7 @@ all: saffron.zip
 saffron.zip:
 	mkdir -p $(DST_DIR)
 	zip $(DST_DIR)/saffron.zip LICENSE
-	cd src; zip -i \*.hx -i \*.xml -r ../$(DST_DIR)/saffron.zip *
+	cd src; zip -i \*.hx -i \*.json -r ../$(DST_DIR)/saffron.zip *
 
 .PHONY: clean
 clean:
