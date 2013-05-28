@@ -39,7 +39,7 @@ typedef EnvironmentJSON = {
 #if !client
         if(err != null) {
             try {
-                var mapstrace = js.Node.require('mapstrace');
+                var mapstrace = saffron.tools.Node.require('mapstrace');
                 
                 untyped mapstrace.build(err, true, function(result) {
                     trace('\n' + untyped __js__('err.toString()') + ':\n' + mapstrace.stringify(result));

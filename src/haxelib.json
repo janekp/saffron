@@ -7,7 +7,5 @@
   "version": "0.1.0",
   "releasenote": "The initial functional prototype",
   "contributors": [ "janekp" ],
-  "dependencies": {
-    "nodejs": ""
-  }
+  "dependencies": { }
 }

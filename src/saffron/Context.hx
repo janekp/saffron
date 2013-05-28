@@ -6,7 +6,7 @@ import saffron.Multipart;
 
 #if !client
 
-import js.Node;
+import saffron.tools.Node;
 
 typedef ContextUrl = NodeUrlObj;
 

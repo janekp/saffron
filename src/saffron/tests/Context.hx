@@ -2,7 +2,7 @@
 
 package saffron.tests;
 
-import js.Node;
+import saffron.tools.Node;
 
 @:require(test) class Context {
     public static var outputPath : String = null;

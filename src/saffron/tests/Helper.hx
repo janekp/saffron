@@ -2,9 +2,9 @@
 
 package saffron.tests;
 
-import js.Node;
 import saffron.Environment;
 import saffron.tools.Jasmine;
+import saffron.tools.Node;
 
 typedef HelperRequestOptions = {
     ?auth : String,

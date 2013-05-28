@@ -5,7 +5,7 @@ package saffron;
 #if !macro
 
 #if !client
-import js.Node;
+import saffron.tools.Node;
 #end
 
 #else

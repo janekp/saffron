@@ -6,7 +6,7 @@ import saffron.Template;
 import saffron.tools.Text;
 
 #if !client
-import js.Node;
+import saffron.tools.Node;
 #end
 
 class SingleChoiceButton extends saffron.widgets.data.View {

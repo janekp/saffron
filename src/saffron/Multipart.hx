@@ -4,7 +4,7 @@ package saffron;
 
 #if !client
 
-import js.Node;
+import saffron.tools.Node;
 
 #end
 

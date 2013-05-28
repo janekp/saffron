@@ -4,9 +4,9 @@ package saffron.tools;
 
 #if !client
 
-import js.Node;
 import saffron.Data;
 import saffron.Environment;
+import saffron.tools.Node;
 
 typedef MySQLOptions = {
     ?host : String,

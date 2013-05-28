@@ -5,7 +5,7 @@ package saffron.widgets.data;
 import saffron.Template;
 
 #if !client
-import js.Node;
+import saffron.tools.Node;
 #end
 
 class View extends Widget {

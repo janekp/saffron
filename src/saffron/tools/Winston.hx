@@ -4,7 +4,7 @@ package saffron.tools;
 
 #if !client
 
-import js.Node;
+import saffron.tools.Node;
 
 typedef WinstonTransports = {
     var Console : WinstonTransport;

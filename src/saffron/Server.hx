@@ -5,10 +5,10 @@ package saffron;
 #if !client
 
 #if !macro
-import js.Node;
 import saffron.Multipart;
 import saffron.Template;
 import saffron.tools.Connect;
+import saffron.tools.Node;
 #else
 import haxe.macro.Context;
 import haxe.macro.Expr;

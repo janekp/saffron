@@ -5,7 +5,7 @@ package saffron;
 import saffron.Template;
 
 #if !client
-import js.Node;
+import saffron.tools.Node;
 #end
 
 class Widget {

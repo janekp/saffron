@@ -4,7 +4,7 @@ package saffron.tests;
 
 import haxe.rtti.Meta;
 import saffron.tools.Jasmine;
-import js.Node;
+import saffron.tools.Node;
 
 using StringTools;
 

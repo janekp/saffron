@@ -3,7 +3,7 @@
 package saffron.tools;
 
 #if !client
-import js.Node;
+import saffron.tools.Node;
 #end
 
 class Text {
