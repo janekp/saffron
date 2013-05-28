@@ -2,9 +2,9 @@
 
 package;
 
-import js.Node;
 import saffron.Environment;
 import saffron.Page;
+import saffron.tools.Node;
 
 class LoginPage extends Page {
     public function index(?error : String, ?username : String, ?state : Dynamic) : Void {

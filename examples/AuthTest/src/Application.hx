@@ -2,11 +2,11 @@
 
 package;
 
-import js.Node;
 import saffron.Context;
 import saffron.Locale;
 import saffron.Server;
 import saffron.Template;
+import saffron.tools.Node;
 
 class Application {
     public static function auth(ctx : Context, permission : String, fn : Dynamic -> Int -> Void) : Void {
