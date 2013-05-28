@@ -561,17 +561,18 @@ Application.prototype.ensureDirectory = function(dir) {
 };
 
 Application.prototype.compileCode = function(fn) {
+	var nodeJSOpts = ''; //'-lib nodejs -D nodejs';
     var that = this;
     
     this.ensureDirectory(this.binaries);
     
     State.exec(
         this.compileOptions((this.type == CONST.TYPE_HYBRID) ? 
-            '-lib nodejs -D nodejs -D server' :
+            nodeJSOpts + ' -D server' :
             ((this.type == CONST.TYPE_CLI ||
               this.type == CONST.TYPE_SERVER ||
               this.type == CONST.TYPE_API ||
-              this.type == CONST.TYPE_TEST) ? '-lib nodejs -D nodejs' : '-D client')), function(err, stdout, stderr) {
+              this.type == CONST.TYPE_TEST) ? nodeJSOpts : '-D client')), function(err, stdout, stderr) {
         if(err == null) {
             var modules = CONST.NODE_MODULES.slice(0);
             
