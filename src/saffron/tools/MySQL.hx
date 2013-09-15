@@ -2,11 +2,9 @@
 
 package saffron.tools;
 
-#if !client
-
+import js.Node;
 import saffron.Data;
-import saffron.Environment;
-import saffron.tools.Node;
+import saffron.tools.JSON;
 
 typedef MySQLOptions = {
     ?host : String,
@@ -46,7 +44,7 @@ extern class MySQL {
             
 #if debug
             saffron.tools.MySQL.catchError = function(q, p, err) {
-                trace('{ query: "' + q + '", params: ' + saffron.Environment.JSON.stringify(p) + ' , error: "' + err + '" }');
+                trace('{ query: "' + q + '", params: ' + saffron.tools.JSON.stringify(p) + ' , error: "' + err + '" }');
             };
 #end
             
@@ -110,5 +108,3 @@ extern class MySQL {
         }
     }
 }
-
-#end

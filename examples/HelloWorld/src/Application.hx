@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Janek Priimann */
+/* Copyright (c) 2013 Janek Priimann */
 
 package;
 
@@ -8,13 +8,8 @@ class Application {
     public static function main() {
         var server = new Server();
         
-        // Config
-        server.config(root, 'static');
-        server.config(database, MockDatabase.adapter);
-        
         // Routes
-        server.get('/', IndexPage);
-        server.get('/view/:id{0-9}', ItemPage);
+        server.get('/:action', IndexHandler);
         
         // Start the client/server
         server.start(3000);

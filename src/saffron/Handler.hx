@@ -1,68 +1,46 @@
-/* Copyright (c) 2012 Janek Priimann */
+/* Copyright (c) 2013 Janek Priimann */
 
 package saffron;
 
 #if !macro
-
-#if !client
-import saffron.tools.Node;
-#end
-
+import js.Node;
+import saffron.Async;
+import saffron.tools.Express;
 #else
-
 import haxe.macro.Context;
 import haxe.macro.Expr;
-
 #end
 
 class Handler {
-    
-    macro public function async(ethis : Expr, fn : Expr, ?parallel : Bool, ?nextTick : Bool) : Expr {
+	macro public function async(ethis : Expr, fn : Expr, ?parallel : Bool, ?nextTick : Bool) : Expr {
         return Macros.generateAsync(ethis, fn, parallel, nextTick);
     }
     
-    macro public function query(ethis : Expr, q : Expr, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDataQuery(ethis, q, p, fn);
+    macro public function parallel(ethis : Expr, fn : Expr, ?nextTick : Bool) : Expr {
+        return Macros.generateAsync(ethis, fn, true, nextTick);
     }
     
 #if !macro
-    private var _ctx : saffron.Context;
+	public var request : ExpressRequest;
+    public var response : ExpressResponse;
+    private var _async : Dynamic;
     
-    public function new(context : saffron.Context) {
-        this._ctx = context;
+    public function new(request : ExpressRequest, response : ExpressResponse) {
+    	this.request = request;
+    	this.response = response;
+    	this._async = new Async();
     }
     
-    private inline function renderError(?status : Int) : Void {
-#if !client
-        untyped Server.context.handleError((status != null) ? status : 500, this._ctx);
-#else
-        // TODO: 
-#end
+    public inline function redirect(location : String, ?code : Int = 200) : Void {
+    	this.response.redirect(code, location);
     }
     
-    private inline function renderRedirect(location : String) : Void {
-#if !client
-        this._ctx.response.writeHead(302, { 'Location': location });
-        this._ctx.response.end();
-#else
-        Window.location.replace(location);
-#end
+    public inline function render(json : Dynamic, ?code : Int = 200) : Void {
+    	this.response.json(code, json);
     }
     
-    private inline function cookies() : Cookies {
-        return this._ctx.cookies;
-    }
-    
-    private inline function param(name : String) : String {
-        return this._ctx.query[untyped name];
-    }
-    
-    private inline function isPost() : Bool {
-#if client
-        return false;
-#else
-        return (this._ctx.request.method == 'POST') ? true : false;
-#end
+    public inline function sendfile(path : String) : Void {
+    	this.response.sendfile(path);
     }
 #end
 }

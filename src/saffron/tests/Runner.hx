@@ -3,8 +3,8 @@
 package saffron.tests;
 
 import haxe.rtti.Meta;
+import js.Node;
 import saffron.tools.Jasmine;
-import saffron.tools.Node;
 
 using StringTools;
 

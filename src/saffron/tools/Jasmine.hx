@@ -4,7 +4,7 @@ package saffron.tools;
 
 #if !client
 
-import saffron.tools.Node;
+import js.Node;
 
 typedef JasmineClock = {
     function reset() : Void;

@@ -2,9 +2,9 @@
 
 package saffron.tests;
 
-import saffron.Environment;
+import js.Node;
 import saffron.tools.Jasmine;
-import saffron.tools.Node;
+import saffron.tools.JSON;
 
 typedef HelperRequestOptions = {
     ?auth : String,
@@ -65,7 +65,7 @@ typedef HelperRequestOptions = {
                 
                 if(data.length > 0 && (type == null || type == 'application/json')) {
                     try {
-                        result = Environment.JSON.parse(data);
+                        result = saffron.tools.JSON.parse(data);
                     }
                     catch(e : Dynamic) {
 #if debug

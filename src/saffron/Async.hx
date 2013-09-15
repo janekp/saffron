@@ -9,7 +9,7 @@ extern class AsyncContext {
     
     @:overload(function(fn : (?Dynamic -> Void) -> Dynamic -> Void, ?parallel : Bool, ?nextTick : Bool) : Async {})
     @:overload(function(fn : (?Dynamic -> Void) -> Void, ?parallel : Bool, ?nextTick : Bool) : Async {})
-    public function async(fn : Void -> Void, ?parallel : Bool, ?nextTick : Bool) : Async;
+    public function _async(fn : Void -> Void, ?parallel : Bool, ?nextTick : Bool) : Async;
 }
 
 extern class Async {

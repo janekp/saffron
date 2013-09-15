@@ -1,12 +1,6 @@
-/* Copyright (c) 2012 Janek Priimann */
+/* Copyright (c) 2012 - 2013 Janek Priimann */
 
 package saffron;
-
-#if macro
-
-import haxe.macro.Expr;
-
-#end
 
 typedef DataIdentifier = Int;
 
@@ -31,102 +25,14 @@ typedef DataError = {
     }
 }
 
-#if client
-
-typedef DataAdapterQuery = {
-    var id : String;
-    var params : String;
-}
-
-typedef DataAdapter = {
-    @:overload(function(q : DataAdapterQuery, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {})
-    function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void;
-}
-
-#else
-
 typedef DataAdapter = {
     function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void;
 }
-
-#end
 
 class Data {
-    macro public static function query(ctx : Expr, q : Expr, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDataQuery(ctx, q, p, fn);
+    public static function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {
+        return Data.adapter().query(q, p, fn);
     }
     
-    macro public static function subscribe(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDataSubscribe(ctx, q, p, fn);
-    }
-    
-    macro public static function unsubscribe(ctx : Expr, ?q : String, ?p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDataUnsubscribe(ctx, q, p, fn);
-    }
-    
-    macro public static function push(ctx : Expr, q : String, p : Expr, ?fn : Expr) : Expr {
-        return Macros.generateDataPush(ctx, q, p, fn);
-    }
-    
-#if server
-    macro private static function clearRemoteHandlers() : Expr {
-        return Macros.clearRemoteHandlers();
-    }
-#end
-    
-#if !macro
     public static var adapter : Void -> DataAdapter;
-    
-    private static function __init__() : Void untyped {
-#if server
-        Data.clearRemoteHandlers();
-        
-        try {
-            var path = require.resolve(__filename + '.calls');
-            saffron.Server.__remoteHandlers = require('vm').runInThisContext('[' + require('fs').readFileSync(path, 'utf-8') + ']', path);
-        }
-        catch(e : Dynamic) {
-        }
-#end
-    
-#if client
-        saffron.Data.__remoting = {
-            exec: function(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {
-                
-            },
-            query: function(qr : Dynamic, ?p : Array<Dynamic>, fn : DataError -> Array<Dynamic> -> Void) : Void {
-                var ix : String = null;
-                var id : String;
-                
-                if(__js__("typeof(q) === 'string'")) {
-                    id = q;
-                } else {
-                    id = q.id;
-                    ix = q.params;
-                }
-                
-                if(__js__("typeof(p) === 'function'")) {
-                    fn = p;
-                    p = null;
-                }
-                
-                jQuery.ajax({
-                    url: saffron.Client.context.remote_prefix + id,
-                    type: 'POST',
-                    data: { v: (p != null) ? p[0] : '', x: ix }
-                }).done(function(data) {
-                    if(__js__("typeof(data) === 'object'")) {
-                        fn(data.error, data.results);
-                    } else {
-                        fn({ code: 'Unknown', fatal: true }, null);
-                    }
-                }).fail(function(jqXHR, textStatus) {
-                    fn({ code: 'HTTPError', fatal: true }, null);
-                });
-            }
-        };
-        saffron.Data.adapter = function() { return saffron.Data.__remoting; }
-#end
-    }
-#end
 }

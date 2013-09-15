@@ -10,16 +10,18 @@ import haxe.macro.Expr;
 import saffron.macros.*;
 
 class Macros {
-    public static function buildPage() : Array<Field> {
-        return Builder.generatePage();
-    }
-    
-    public static function clearRemoteHandlers() : Expr {
-        return Router.clearRemoteHandlers();
-    }
-    
     public static function stringify(e : Expr) : String {
         return Helper.stringify(e);
+    }
+    
+    public static function generateSetter(ethis : Expr, key : Expr, value : Expr) : Expr {	
+        var k = Macros.stringify(key);
+        var s : Expr = {
+            expr : EField(ethis, k), 
+            pos : Context.currentPos()
+        };
+        
+        return macro $s = $value;
     }
     
     public static function generateAsync(ethis : Expr, fn : Expr, parallel : Bool, nextTick : Bool) : Expr {
@@ -27,10 +29,10 @@ class Macros {
             var _p = { expr: EConst(CIdent((parallel) ? 'true' : 'false')), pos: Context.currentPos() };
             var _n = { expr: EConst(CIdent((nextTick) ? 'true' : 'false')), pos: Context.currentPos() };
             
-            return macro saffron.Async.AsyncContext.context($ethis._ctx).async($fn, $_p, $_n);
+            return macro saffron.Async.AsyncContext.context($ethis)._async($fn, $_p, $_n);
         }
         
-        return macro saffron.Async.AsyncContext.context($ethis._ctx).async($fn);
+        return macro saffron.Async.AsyncContext.context($ethis)._async($fn);
     }
     
     public static function generateHandler(ethis : Expr, path : String, method : String, handler : Expr, auth : Expr) : Expr {
@@ -43,22 +45,6 @@ class Macros {
 #else
         return macro untyped __js__('');
 #end
-    }
-    
-    public static function generateDataQuery(ctx : Expr, q : Expr, p : Expr, fn : Expr) : Expr {
-        return Adapter.generateDataQuery(ctx, q, p, fn);
-    }
-    
-    public static function generateDataSubscribe(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
-        return Adapter.generateDataSubscribe(ctx, q, p, fn);
-    }
-    
-    public static function generateDataUnsubscribe(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
-        return Adapter.generateDataUnsubscribe(ctx, q, p, fn);
-    }
-    
-    public static function generateDataPush(ctx : Expr, q : String, p : Expr, fn : Expr) : Expr {
-        return Adapter.generateDataPush(ctx, q, p, fn);
     }
 }
 

@@ -4,7 +4,7 @@ package saffron.tools;
 
 #if !client
 
-import saffron.tools.Node;
+import js.Node;
 
 typedef WinstonTransports = {
     var Console : WinstonTransport;
@@ -61,8 +61,8 @@ typedef WinstonStream = {
 };
 
 typedef WinstonQueryOptions = {
-    ?from : saffron.Date,
-    ?until : saffron.Date
+    ?from : saffron.tools.Date,
+    ?until : saffron.tools.Date
 };
 
 extern class Winston {

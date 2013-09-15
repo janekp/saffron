@@ -2,8 +2,8 @@
 
 package saffron.tests;
 
+import js.Node;
 import saffron.tools.Jasmine;
-import saffron.tools.Node;
 
 @:autoBuild(saffron.macros.Builder.generateSuite()) @:require(test) @:keepSub class Suite {
     public static var all : Map<String, Dynamic>;
