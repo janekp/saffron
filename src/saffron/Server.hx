@@ -4,6 +4,7 @@ package saffron;
 
 #if !macro
 import js.Node;
+import saffron.Data;
 import saffron.tools.Express;
 import saffron.tools.RegExp;
 #else
@@ -27,6 +28,7 @@ class Server {
 #if !macro
     public var express : Express;
 	public var auth : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
+	public var database : Void -> DataAdapter = null;
 	
 	public function new() {
 		this.express = new Express();
@@ -60,6 +62,10 @@ class Server {
 			}
         });
 #end
+		
+		if(this.database != null) {
+			Data.adapter = this.database;
+		}
 		
 		this.express.listen(port);
 	}

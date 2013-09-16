@@ -88,7 +88,8 @@ extern class Express {
     public function locals(variables : Dynamic) : Void;
     @:overload(function(path : String, fn : ExpressRequest -> ExpressResponse -> Void) : Void {})
     public function get(path : String, fn1 : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void, fn2 : ExpressRequest -> ExpressResponse -> Void) : Void;
-    public function post(path : String, fn : ExpressRequest -> ExpressResponse -> Void) : Void;
+    @:overload(function(path : String, fn : ExpressRequest -> ExpressResponse -> Void) : Void {})
+    public function post(path : String, fn1 : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void, fn2 : ExpressRequest -> ExpressResponse -> Void) : Void;
     public function all(path : String, fn : ExpressRequest -> ExpressResponse -> Void) : Void;
     public function use(fn : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void) : Void;
     public function listen(port : Int) : Void;
