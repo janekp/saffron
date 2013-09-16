@@ -74,7 +74,7 @@ Install
     
     # Optional dependencies
     sudo npm install -g mysql generic-pool mapstrace formidable@latest
-    sudo npm install -g jasmine-node winston send
+    sudo npm install -g jasmine-node winston send bcrypt
     
     # Node can't find modules?
     sudo npm link <MODULENAME>
