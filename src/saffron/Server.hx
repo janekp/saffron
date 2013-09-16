@@ -29,6 +29,7 @@ class Server {
     public var express : Express;
 	public var auth : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
 	public var database : Void -> DataAdapter = null;
+	public var error : Dynamic -> ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
 	
 	public function new() {
 		this.express = new Express();
@@ -65,6 +66,11 @@ class Server {
 		
 		if(this.database != null) {
 			Data.adapter = this.database;
+		}
+		
+		if(this.error != null) {
+			this.express.use(this.express.router);
+			this.express.use(this.error);
 		}
 		
 		this.express.listen(port);
