@@ -36,7 +36,7 @@ private typedef RemoteDataHandler = {
     
     static function generateHandler(eself : Expr, path : String, method : String, ehandler : Expr, eauth : Expr) : Expr {
 		var auth = Helper.stringify(eauth);
-        var permission = (auth == 'auth_required' || auth == 'auth_optional') ? Helper.stringifyInnerExpr(eauth) : null;
+        var permission = (auth == 'auth_required' || auth == 'auth_optional' || auth == 'auth_required_multipart') ? Helper.stringifyInnerExpr(eauth) : null;
         var handler = Helper.stringify(ehandler);
         var self = Helper.stringify(eself);
         var action, actions = null;
@@ -68,6 +68,7 @@ private typedef RemoteDataHandler = {
         }
         
         if(auth != 'auth_required' &&
+           auth != 'auth_required_multipart' &&
            auth != 'auth_optional' &&
            auth != 'auth_never' &&
            auth != 'null') {
