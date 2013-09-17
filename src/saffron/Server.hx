@@ -35,7 +35,7 @@ class Server {
 		this.express = new Express();
 		this.express.disable('x-powered-by');
 		this.express.param('id', function(req : ExpressRequest, res : ExpressResponse, next : ?Dynamic -> Void, id : String) {
-			var regex = new RegExp('/^\\d+$/');
+			var regex = new RegExp('^\\d+$');
 			
 			if(regex.test(id)) {
 				next();

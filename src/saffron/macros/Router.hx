@@ -29,7 +29,7 @@ private typedef RemoteDataHandler = {
         			self + '.' + auth) : '')
         		+ ", function(req, res) {" +
         			((hasId) ?
-        				"(new " + handler + "(req, res))." + action + "(req.body.id);" :
+        				"(new " + handler + "(req, res))." + action + "(req.params.id);" :
         				"(new " + handler + "(req, res))." + action + "();") +
         		"})";
     }
