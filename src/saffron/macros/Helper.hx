@@ -32,6 +32,10 @@ typedef ClassType = haxe.macro.Type.ClassType;
         return null;
     }
     
+    static function stringifyTypePath(t : TypePath) : String {
+    	return (t.pack.length > 0) ? t.pack.join('.') + '.' + t.name : t.name;
+    }
+    
     static function stringifyInnerExpr(e : Expr) : String {
         switch(e.expr) {
             case ECall(_n, params): {

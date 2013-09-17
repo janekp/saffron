@@ -2,6 +2,11 @@
 
 package saffron;
 
+#if macro
+import haxe.macro.Context;
+import haxe.macro.Expr;
+#end
+
 typedef DataIdentifier = Int;
 
 typedef DataError = {
@@ -30,7 +35,19 @@ typedef DataAdapter = {
 }
 
 class Data {
-    public static function query(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {
+	macro public static function fetch(etype : Expr, efn : Expr, eerr : Expr, eresult : Expr) : Expr {
+		return Macros.generateDataFetch(etype, efn, eerr, eresult);
+    }
+    
+    macro public static function fetchAll(etype : Expr, efn : Expr, eerr : Expr, eresult : Expr) : Expr {
+		return Macros.generateDataFetchAll(etype, efn, eerr, eresult);
+    }
+    
+    macro public static function query(q : String, ?p : Array<Dynamic>, efn : Expr) : Expr {
+    	return Macros.generateDataQuery(q, p, efn);
+    }
+    
+    public static inline function queryRaw(q : String, ?p : Array<Dynamic>, fn : DataError -> DataResult -> Void) : Void {
         return Data.adapter().query(q, p, fn);
     }
     
