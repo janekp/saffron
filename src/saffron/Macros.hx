@@ -44,29 +44,33 @@ class Macros {
     	var array = false;
     	var type = switch(efn.expr) {
             case EFunction(name, f):
-            	switch(f.args[1].type) {
-            		case TPath(path):
-            			var _t = Helper.stringifyTypePath(path);
-            			
-            			if(_t == 'Array') {
-            				array = true;
-            				_t = switch(path.params[0]) {
-            					case TPType(p):
-            						switch(p) {
-            							case TPath(_path):
-            								Helper.stringifyTypePath(_path);
-            							default:
-            								null;
-            						}
-            					default:
-            						null;
-            				};
-            			}
-            			
-            			_t;
-            		default:
-            			null;
-            	}
+            	if(f.args[1].type == null) {
+            		'DataResult';
+            	} else {
+					switch(f.args[1].type) {
+						case TPath(path):
+							var _t = Helper.stringifyTypePath(path);
+						
+							if(_t == 'Array') {
+								array = true;
+								_t = switch(path.params[0]) {
+									case TPType(p):
+										switch(p) {
+											case TPath(_path):
+												Helper.stringifyTypePath(_path);
+											default:
+												null;
+										}
+									default:
+										null;
+								};
+							}
+						
+							_t;
+						default:
+							null;
+					}
+				}
             default:
             	null;
         };
