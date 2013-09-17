@@ -37,6 +37,7 @@ typedef ExpressRequest = { > NodeHttpServerReq,
 	
 	// Extensions
 	public var body : Dynamic;
+	public var files : Dynamic;
 	public var permission : String;
 	public var user : Dynamic;
 };
