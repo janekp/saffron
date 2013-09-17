@@ -40,7 +40,7 @@ class Macros {
         };
     }
     
-    public static function generateDataQuery(q : String, p : Array<Dynamic>, efn : Expr) : Expr {
+    public static function generateDataQuery(q : String, p : ExprOf<Array<Dynamic>>, efn : Expr) : Expr {
     	var array = false;
     	var type = switch(efn.expr) {
             case EFunction(name, f):
@@ -76,7 +76,7 @@ class Macros {
         };
         
     	if(type == 'DataResult' || type == 'saffron.DataResult') {
-    		return macro saffron.Data.adapter().query($v{q}, $v{p}, ${efn});
+    		return macro saffron.Data.adapter().query($v{q}, $p, ${efn});
     	}
     	
     	if(array == true) {
@@ -84,8 +84,8 @@ class Macros {
 				expr : ENew({ name: 'Array', pack: [], params: [ TPType(TPath({ name: type, pack: [], params: [] })) ] }, []),
 				pos: Context.currentPos()
 			};
-		
-			return macro saffron.Data.adapter().query($v{q}, $v{p}, function(err : DataError, result : DataResult) {
+			
+			return macro saffron.Data.adapter().query($v{q}, $p, function(err : DataError, result : DataResult) {
 				var fn = ${efn};
 				
 				if(err == null && result != null) {
@@ -102,7 +102,7 @@ class Macros {
 			});
     	}
     	
-    	return macro saffron.Data.adapter().query($v{q}, $v{p}, function(err : DataError, result : DataResult) {
+    	return macro saffron.Data.adapter().query($v{q}, $p, function(err : DataError, result : DataResult) {
     		${efn}(err, (err == null && result != null && result.length == 1) ? new $type(result[0]) : null);
     	});
     }
