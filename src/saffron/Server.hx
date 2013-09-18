@@ -29,12 +29,18 @@ class Server {
 #if !macro
     public var express : Express;
 	public var auth : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
-	public var auth_pre : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
+	public var auth_multipart : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
 	public var database : Void -> DataAdapter = null;
 	public var error : Dynamic -> ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
-	public var temp : String = null;
+	public var file_root : String = null;
+	public var temp_root : String = null;
 	
 	public function new() {
+#if !debug
+		if(Node.process.env.NODE_ENV == null) {
+			Node.process.env.NODE_ENV = 'production';
+		}
+#end
 		this.express = new Express();
 		this.express.disable('x-powered-by');
 		this.express.param('id', function(req : ExpressRequest, res : ExpressResponse, next : ?Dynamic -> Void, id : String) {
@@ -77,6 +83,10 @@ class Server {
 			this.express.use(this.error);
 		}
 		
+		if(this.file_root != null) {
+			this.express.use(Express.Static(this.file_root));
+		}
+		
 		this.express.listen(port);
 	}
 	
@@ -95,8 +105,8 @@ class Server {
 	private function auth_required_multipart_(req : ExpressRequest, res : ExpressResponse, next : Int -> Void) : Void {
 		var formidable = new Formidable();
 		
-		if(this.temp != null) {
-			formidable.uploadDir = this.temp;
+		if(this.temp_root != null) {
+			formidable.uploadDir = this.temp_root;
 		}
 		
 		formidable.parse(req, function(err, fields, files) {
@@ -116,14 +126,20 @@ class Server {
 				res.on('finish', cleanup_func);
 			}
 			
-			this.auth(req, res, next);
+			if(this.auth_multipart == null) {
+				this.auth(req, res, next);
+			} else if(err == null) {
+				next(null);
+			} else {
+				next(500);
+			}
 		});
 	}
 	
 	public function auth_required_multipart(req : ExpressRequest, res : ExpressResponse, next : Int -> Void) : Void {
-		if(req.is('multipart/form-data') && this.temp != null) {
-			if(this.auth_pre != null) {
-				this.auth_pre(req, res, function(err : Int) {
+		if(req.is('multipart/form-data')) {
+			if(this.auth_multipart != null) {
+				this.auth_multipart(req, res, function(err : Int) {
 					if(err == null) {
 						this.auth_required_multipart_(req, res, next);
 					} else {

@@ -19,8 +19,9 @@ private typedef RemoteDataHandler = {
 }
 
 @:allow(saffron.Macros) @:allow(saffron.macros) class Router {
-	static function generateHandlerRaw(self : String, orig : String, path : String, method : String, handler : String, auth : String, permission : String, action : String) {
+	static function generateHandlerRaw(self : String, orig : String, path : String, method : String, handler : String, auth : String, permission : String, template : String, action : String) {
         var hasId = (path.indexOf(':id') != -1) ? true : false;
+        var tmpBlock = (template != null) ? ",\"" + template + ((action != 'index') ? '.' + action : '') + "\"" : '';
         
         return self + ".express." + method + "(\"" + path + "\"" +
         	((auth != 'null' && auth != 'auth_never') ? ',' +
@@ -29,8 +30,8 @@ private typedef RemoteDataHandler = {
         			self + '.' + auth) : '')
         		+ ", function(req, res) {" +
         			((hasId) ?
-        				"(new " + handler + "(req, res))." + action + "(req.params.id);" :
-        				"(new " + handler + "(req, res))." + action + "();") +
+        				"(new " + handler + "(req, res" + tmpBlock + "))." + action + "(req.params.id);" :
+        				"(new " + handler + "(req, res" + tmpBlock + "))." + action + "();") +
         		"})";
     }
     
@@ -42,6 +43,7 @@ private typedef RemoteDataHandler = {
         var action, actions = null;
         var i, j, c, ch;
         var str = '';
+        var template;
         var type;
         
         if(handler.indexOf('.') != -1) {
@@ -76,6 +78,7 @@ private typedef RemoteDataHandler = {
         }
         
         type = Helper.typeToClass(Context.getType(handler));
+        template = Router.classToTemplate(handler);
         
         // addMetadata
         if(path == null || path == '*' || path == '/*') {
@@ -134,18 +137,50 @@ private typedef RemoteDataHandler = {
                 	Context.error(handler + ' has no public method "' + action + '"', Context.currentPos());
                 }
                 
-                str += Router.generateHandlerRaw(self, action, (i != -1 && j != -1) ? ((action == 'index') ? path.substr(0, (i > 1 && path.charAt(i - 1) == '/') ? i - 1 : i) : path.substr(0, i) + action + path.substr(j)) : path, method, handler, auth, permission, action);
+                str += Router.generateHandlerRaw(self, action, (i != -1 && j != -1) ? ((action == 'index') ? path.substr(0, (i > 1 && path.charAt(i - 1) == '/') ? i - 1 : i) : path.substr(0, i) + action + path.substr(j)) : path, method, handler, auth, permission, template, action);
             }
         } else {
         	if(!Helper.hasField(type, 'index')) {
                 Context.error(handler + ' has no public method "index"', Context.currentPos());
             }
             
-            str = Router.generateHandlerRaw(self, action, path, method, handler, auth, permission, 'index');
+            str = Router.generateHandlerRaw(self, action, path, method, handler, auth, permission, template, 'index');
         }
         
         return Context.parse('{' + str + ';}', Context.currentPos());
     }
+    
+    private static function classToTemplate(cls : String) : String {
+		var template : String = null;
+		
+		if(cls.endsWith('Page')) {
+            var str = cls.substr(0, cls.length - 4);
+            
+            template = '';
+            
+            if(str.indexOf('.') != -1) {
+				var cc = str.split('.');
+				
+				str = cc[cc.length - 1];
+			}
+			
+			for(i in 0...str.length) {
+				var ch = str.charCodeAt(i);
+				
+				if(ch >= 65 && ch <= 90) {
+					if(template != '') {
+						template += '/';
+					}
+					
+					template += str.charAt(i).toLowerCase();
+				} else {
+					template += str.charAt(i);
+				}
+			}
+        }
+        
+        return template;
+	}
 }
 
 #end
