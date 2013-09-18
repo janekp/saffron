@@ -77,7 +77,7 @@ extern class Template {
         try {
             saffron.Template = Node.require('dustjs-linkedin');
             try { saffron.Template.helper = Node.require('dustjs-helpers'); } catch(e : Dynamic) { }
-            saffron.Template.srcRoot = 'templates/';
+            saffron.Template.srcRoot = Node.__dirname + '/templates/';
             
 #if server
             saffron.Template.onLoad = function(name, fn) {

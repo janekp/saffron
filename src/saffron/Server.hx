@@ -8,6 +8,8 @@ import saffron.Data;
 import saffron.tools.Express;
 import saffron.tools.Formidable;
 import saffron.tools.RegExp;
+
+using StringTools;
 #else
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -83,7 +85,17 @@ class Server {
 			this.express.use(this.error);
 		}
 		
+		if(this.temp_root != null) {
+			if(!this.temp_root.startsWith('/')) {
+				this.temp_root = Node.__dirname + '/' + this.temp_root;
+			}
+		}
+		
 		if(this.file_root != null) {
+			if(!this.file_root.startsWith('/')) {
+				this.file_root = Node.__dirname + '/' + this.file_root;
+			}
+			
 			this.express.use(Express.Static(this.file_root));
 		}
 		
