@@ -2,6 +2,8 @@
 
 package saffron;
 
+using StringTools;
+
 #if !client
 
 import js.Node;
@@ -122,7 +124,7 @@ extern class Template {
                 
                 saffron.Template.filters.L = Locale.str;
                 saffron.Template.helpers.localize = function(chunk, ctx, bodies, params) {
-                    return chunk.write((params.escape == 'false') ? Locale.str(params.str) : Utils.escapeHtml(Locale.str(params.str)));
+                    return chunk.write((params.escape == 'false') ? Locale.str(params.str) : Locale.str(params.str).htmlEscape(true));
                 };
             }
         }
