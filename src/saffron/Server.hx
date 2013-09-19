@@ -130,6 +130,10 @@ class Server {
 				var cleanup = new Array<String>();
 				var cleanup_func : Void -> Void;
 				
+				if(req.files == null) {
+					req.files = { };
+				}
+				
 				untyped __js__("for(var file in files) { req.files[file] = files[file].path; cleanup.push(files[file].path); }");
 				cleanup_func = function() { this.removeFiles(cleanup); };
 				
