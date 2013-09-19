@@ -116,32 +116,36 @@ class Server {
 	
 	private function auth_required_multipart_(req : ExpressRequest, res : ExpressResponse, next : Int -> Void) : Void {
 		var formidable = new Formidable();
+		var cleanup = new Array<String>();
+		var cleanup_func : Void -> Void = function() { this.removeFiles(cleanup); };
 		
 		if(this.temp_root != null) {
 			formidable.uploadDir = this.temp_root;
 		}
 		
+		if(req.files == null) {
+			req.files = { };
+		}
+			
+		formidable.on('file', function(name, file) {
+			cleanup.push(file.path);
+			
+			if(req.files[name] == null) {
+				req.files[name] = [ file ];
+			} else {
+				req.files[name].push(file);
+			}
+		});
+		
+		res.on('error', cleanup_func);
+		res.on('close', cleanup_func);
+		res.on('finish', cleanup_func);
+		
 		formidable.parse(req, function(err, fields, files) {
 			if(fields != null) {
 				untyped __js__("for(var field in fields) { req.body[field] = fields[field]; }");
 			}
-			
-			if(files != null) {
-				var cleanup = new Array<String>();
-				var cleanup_func : Void -> Void;
-				
-				if(req.files == null) {
-					req.files = { };
-				}
-				
-				untyped __js__("for(var file in files) { req.files[file] = files[file].path; cleanup.push(files[file].path); }");
-				cleanup_func = function() { this.removeFiles(cleanup); };
-				
-				res.on('error', cleanup_func);
-				res.on('close', cleanup_func);
-				res.on('finish', cleanup_func);
-			}
-			
+						
 			if(this.auth_multipart == null) {
 				this.auth(req, res, next);
 			} else if(err == null) {
