@@ -34,6 +34,7 @@ class Server {
 	public var auth_multipart : ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
 	public var database : Void -> DataAdapter = null;
 	public var error : Dynamic -> ExpressRequest -> ExpressResponse -> (Int -> Void) -> Void = null;
+	public var multipart_hash : String = null;
 	public var file_root : String = null;
 	public var temp_root : String = null;
 	
@@ -118,6 +119,10 @@ class Server {
 		var formidable = new Formidable();
 		var cleanup = new Array<String>();
 		var cleanup_func : Void -> Void = function() { this.removeFiles(cleanup); };
+		
+		if(this.multipart_hash != null) {
+			formidable.hash = this.multipart_hash;
+		}
 		
 		if(this.temp_root != null) {
 			formidable.uploadDir = this.temp_root;
