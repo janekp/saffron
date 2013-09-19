@@ -5,13 +5,12 @@ package saffron;
 #if !macro
 import js.Node;
 import saffron.Async;
+import saffron.Template;
 import saffron.tools.Express;
 #else
 import haxe.macro.Context;
 import haxe.macro.Expr;
 #end
-
-import saffron.Template;
 
 class Page {
 	macro public function async(ethis : Expr, fn : Expr, ?parallel : Bool, ?nextTick : Bool) : Expr {
