@@ -131,6 +131,22 @@ class Server {
 		if(req.files == null) {
 			req.files = { };
 		}
+		
+		formidable.on('field', function(key : String, value : String) {
+			if(key.endsWith('[]')) {
+				key = key.substr(0, key.length - 2) + '_list';
+				
+				if(req.body[untyped key] == null) {
+					req.body[untyped key] = [ ];
+				} else if(untyped __js__('!(req.body[key] instanceof Array)')) {
+					req.body[untyped key] = [ req.body[untyped key] ];
+				}
+				
+				req.body[untyped key].push(value);
+			} else {
+				req.body[untyped key] = value;
+			}
+		});
 			
 		formidable.on('file', function(name, file) {
 			cleanup.push(file.path);
@@ -146,11 +162,7 @@ class Server {
 		res.on('close', cleanup_func);
 		res.on('finish', cleanup_func);
 		
-		formidable.parse(req, function(err, fields, files) {
-			if(fields != null) {
-				untyped __js__("for(var field in fields) { req.body[field] = fields[field]; }");
-			}
-						
+		formidable.parse(req, function(err, fields, files) {		
 			if(this.auth_multipart == null) {
 				this.auth(req, res, next);
 			} else if(err == null) {
