@@ -43,15 +43,15 @@ class Data {
 		return Macros.generateDataFetchAll(etype, efn, eerr, eresult);
     }
     
-    macro public static function query(q : String, p : ExprOf<Array<Dynamic>>, ?efn : Expr) : Expr {
+    macro public static function query(eq : ExprOf<String>, ep : ExprOf<Array<Dynamic>>, ?efn : Expr) : Expr {
     	if(Macros.stringify(efn) == 'null') {
     		var tmp = efn;
     		
-    		efn = p;
-    		p = tmp;
+    		efn = ep;
+    		ep = tmp;
     	}
     	
-    	return Macros.generateDataQuery(q, p, efn);
+    	return Macros.generateDataQuery(eq, ep, efn);
     }
     
     public static inline function params(p : Array<Dynamic>) : Array<Dynamic> {
