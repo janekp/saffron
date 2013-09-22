@@ -12,7 +12,14 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 #end
 
-class Page {
+typedef PageHeaderAttributes = {
+	?title : String, // 'Untitled',
+	?stylesheet : String, // 'stylesheet.css',
+	?language : String, // 'en',
+	?encoding : String, // 'utf-8'
+};
+
+@:autoBuild(saffron.Macros.buildPage()) class Page {
 	macro public function async(ethis : Expr, fn : Expr, ?parallel : Bool, ?nextTick : Bool) : Expr {
         return Macros.generateAsync(ethis, fn, parallel, nextTick);
     }
@@ -26,6 +33,7 @@ class Page {
     public var response : ExpressResponse;
     public var template : String;
     private var _async : Dynamic;
+    private var _state : Dynamic;
     
     public function new(request : ExpressRequest, response : ExpressResponse, template : String) {
     	this.request = request;
@@ -77,6 +85,53 @@ class Page {
     
     private function layout() : String {
         return null;
+    }
+    
+    private function findWidgetById(id : String, ?constructor : Void -> Dynamic) : Dynamic {
+    	var widget : Dynamic = null;
+    	
+        if(this._state == null) {
+        	this._state = { _w: { } };
+        }
+        
+        widget = this._state._w[untyped id];
+        
+		if(widget == null && constructor != null) {
+			widget = constructor();
+			this._state._w[untyped id] = widget;
+        }
+        
+        return widget;
+    }
+    
+    private static inline function renderHeader(chunk : TemplateChunk, attributes : PageHeaderAttributes) : TemplateChunk {
+    
+    // ?title : String, // = 'Untitled',
+	//?stylesheet : String, // = 'stylesheet.css',
+	//?language : String, // = 'en',
+	//?encoding : String, // = 'utf-8'
+	
+        return chunk.write(
+            '<!DOCTYPE html>' + 
+            '<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->' +
+            '<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->' +
+            '<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->' + 
+            '<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->' +
+            '<head>' + 
+	        '<meta charset="' + attributes.encoding + '" />' + 
+	        '<title>' + attributes.title + '</title>' +
+	        '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />' +
+	        '<link rel="stylesheet" href="' + attributes.stylesheet + '" />' +
+	        //'<link rel="shortcut icon" href="images/favicon.ico" />' +
+	        //'<link rel="apple-touch-icon" href="images/apple-touch-icon-57.png" />' + 
+	        //'<link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72.png" />' + 
+	        //'<link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114.png" />' + 
+	        '<!--[if lt IE 9]><script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->' +
+	        '</head><body>');
+    }
+    
+    private static inline function renderFooter(chunk : TemplateChunk) : TemplateChunk {
+        return chunk.write('</body></html>');
     }
 #end
 }

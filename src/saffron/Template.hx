@@ -95,9 +95,11 @@ extern class Template {
                 var templates : Dynamic = { };
                 var files = Node.fs.readdirSync(saffron.Template.srcRoot);
                 
+                templates[untyped '__saffron'] = "{saffron}";
+            	
                 for(file in files) {
                     if(untyped file.indexOf('.html', file.length - 5) != -1) {
-                        file = saffron.Template.srcRoot  + file;
+                        file = saffron.Template.srcRoot + file;
                         templates[untyped file] = Node.fs.readFileSync(file, 'UTF-8');
                     }
                 }
@@ -106,6 +108,11 @@ extern class Template {
             })();
 #else
             saffron.Template.onLoad = function(name, fn) {
+            	if(name == '__saffron') {
+            		fn(null, "{saffron}");
+            		return;
+            	}
+            	
                 Node.fs.readFile(saffron.Template.srcRoot + name, function(err, data) {
                     if(data != null) {
                         fn(err, data.toString());
@@ -117,11 +124,20 @@ extern class Template {
             };
 #end
             
+            if(saffron.Template.helpers == null) {
+            	saffron.Template.helpers = { };
+            }
+            
+            if(saffron.Widget != null) {
+            	saffron.Template.helpers.widget = function(chunk, ctx, bodies, params) {
+            		var name = params.name;
+            		var widget : Widget = ctx.get('get' + name.charAt(0).toUppercase() + name.substring(1));
+            		
+                    return (widget != null) ? widget.render(chunk) : null;
+                };
+            }
+            
             if(saffron.Locale != null) {
-                if(saffron.Template.helpers == null) {
-                    saffron.Template.helpers = { };
-                }
-                
                 saffron.Template.filters.L = Locale.str;
                 saffron.Template.helpers.localize = function(chunk, ctx, bodies, params) {
                     return chunk.write((params.escape == 'false') ? Locale.str(params.str) : Locale.str(params.str).htmlEscape(true));

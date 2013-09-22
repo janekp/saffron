@@ -14,6 +14,10 @@ class Macros {
         return Helper.stringify(e);
     }
     
+    public static function buildPage() : Array<Field> {
+        return Builder.generatePage();
+    }
+    
 	public static function generateDataFetch(etype : Expr, efn : Expr, eerr : Expr, eresult : Expr) : Expr {
 		return Query.generateDataFetchAll(etype, efn, eerr, eresult);
 	}
