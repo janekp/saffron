@@ -105,23 +105,17 @@ typedef PageHeaderAttributes = {
     }
     
     private static inline function renderHeader(chunk : TemplateChunk, attributes : PageHeaderAttributes) : TemplateChunk {
-    
-    // ?title : String, // = 'Untitled',
-	//?stylesheet : String, // = 'stylesheet.css',
-	//?language : String, // = 'en',
-	//?encoding : String, // = 'utf-8'
-	
         return chunk.write(
             '<!DOCTYPE html>' + 
-            '<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->' +
-            '<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->' +
-            '<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->' + 
-            '<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->' +
+            '<!--[if lt IE 7 ]><html class="ie ie6" lang="' + ((attributes.language != null) ? attributes.language : 'en') + '"> <![endif]-->' +
+            '<!--[if IE 7 ]><html class="ie ie7" lang="' + ((attributes.language != null) ? attributes.language : 'en') + '"> <![endif]-->' +
+            '<!--[if IE 8 ]><html class="ie ie8" lang="' + ((attributes.language != null) ? attributes.language : 'en') + '"> <![endif]-->' + 
+            '<!--[if (gte IE 9)|!(IE)]><!--><html lang="' + ((attributes.language != null) ? attributes.language : 'en') + '"> <!--<![endif]-->' +
             '<head>' + 
-	        '<meta charset="' + attributes.encoding + '" />' + 
-	        '<title>' + attributes.title + '</title>' +
+	        '<meta charset="' + ((attributes.encoding != null) ? attributes.encoding : 'utf-8') + '" />' + 
+	        '<title>' + ((attributes.title != null) ? attributes.title : 'Untitled') + '</title>' +
 	        '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />' +
-	        '<link rel="stylesheet" href="' + attributes.stylesheet + '" />' +
+	        '<link rel="stylesheet" href="' + ((attributes.stylesheet != null) ? attributes.stylesheet : 'stylesheet.css') + '" />' +
 	        //'<link rel="shortcut icon" href="images/favicon.ico" />' +
 	        //'<link rel="apple-touch-icon" href="images/apple-touch-icon-57.png" />' + 
 	        //'<link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72.png" />' + 
