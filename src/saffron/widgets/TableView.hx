@@ -12,6 +12,7 @@ class TableView extends saffron.widgets.data.View {
     
     public function new(?id : String) {
         super(id);
+        this.setClass('table');
     }
     
     private override function renderItem(chunk : TemplateChunk, row : Int) : TemplateChunk {
@@ -38,7 +39,7 @@ class TableView extends saffron.widgets.data.View {
     }
     
     public override function render(chunk : TemplateChunk) : TemplateChunk {
-        chunk = chunk.write('<div id="' + this.getId() + '" class="table' + ((this.getClass() != null) ? ' ' + this.getClass() + '">' : '">'));
+        chunk = chunk.write('<div' + this.generateStandardAttributes() + '>');
         chunk = this.renderItems(chunk);
         chunk = chunk.write('</div>');
         
