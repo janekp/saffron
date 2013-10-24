@@ -21,7 +21,7 @@ typedef StripeCharge = {
 	var created : Int;
 	var livemode : Bool;
 	var paid : Bool;
-	var amont : Int;
+	var amount : Int;
 	var currency : String;
 	var refunded : Bool;
 	var card : Dynamic;
