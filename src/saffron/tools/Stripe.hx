@@ -45,19 +45,19 @@ typedef StripeCharges = {
 };
 
 extern class Stripe {
-	public function new(key : String) : Void;
+	public static function create(key : String) : Stripe;
 	
 	public var charges : StripeCharges;
 	
     private static function __init__() : Void untyped {
-        try {
-            if(saffron.tools == null) {
-                saffron.tools = { };
-            }
-            
-            saffron.tools.Stripe = Node.require('stripe-node');
-        }
-        catch(e : Dynamic) {
-        }
+        if(saffron.tools == null) {
+			saffron.tools = { };
+		}
+		
+		saffron.tools.Stripe = {
+			create: function(key) {
+				return Node.require('stripe')(key);
+			}
+		};
     }
 }
