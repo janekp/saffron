@@ -162,8 +162,7 @@ extern class Template {
             		
             		a = Std.string(a);
             		b_ = Std.string(b).split(',');
-            		trace(a);
-            		trace(b);
+            		
             		for(b__ in b_) {
             			if(a == b__) {
             				return true;
