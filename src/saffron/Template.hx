@@ -26,6 +26,7 @@ typedef TemplateChunk = {
     function end(?data : Dynamic) : TemplateChunk;
     function tap(fn : Void -> Void) : TemplateChunk;
     function untap() : TemplateChunk;
+    function capture(block : Dynamic, context : Dynamic, fn : Dynamic) : TemplateChunk;
     function setError(err : TemplateError) : TemplateChunk;
 }
 
@@ -127,6 +128,36 @@ extern class Template {
             if(saffron.Template.helpers == null) {
             	saffron.Template.helpers = { };
             }
+            
+            var resolve = untyped function(chunk, context, input : Dynamic) {
+            	var output : String = input;
+            	
+            	if(__js__('typeof input === "function"')) {
+      				if(input.isFunction == true){
+        				output = input();
+      				} else {
+						output = '';
+						
+        				chunk.tap(function(data) {
+           					output += data;
+           					return '';
+          				}).render(input, context).untap();
+          				
+        				if(output == '') {
+          					output = false;
+						}
+					}
+				}
+				
+				return output;
+            };
+            
+            saffron.Template.helpers.test = function(chunk : TemplateChunk, ctx, bodies, params) : TemplateChunk {
+            	return (bodies.block != null && resolve(chunk, ctx, params.a) == resolve(chunk, ctx, params.b)) ?
+            		chunk.capture(bodies.block, ctx, function(string, chunk) {
+            			chunk.end(string);
+        			}) : chunk;
+            };
             
             if(saffron.Widget != null) {
             	saffron.Template.helpers.widget = function(chunk, ctx, bodies, params) {
