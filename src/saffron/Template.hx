@@ -129,7 +129,7 @@ extern class Template {
             	saffron.Template.helpers = { };
             }
             
-            var resolve = untyped function(chunk, context, input : Dynamic) {
+            var resolve = untyped function(chunk, context, input : Dynamic) : String {
             	var output : String = input;
             	
             	if(__js__('typeof input === "function"')) {
@@ -152,8 +152,36 @@ extern class Template {
 				return output;
             };
             
+            var includes = function(a : String, b : String) : Bool {
+            	if(a != b) {
+            		var b_ : Array<String>;
+            		
+            		if(a == null || b == null) {
+            			return false;
+            		}
+            		
+            		a = Std.string(a);
+            		b_ = Std.string(b).split(',');
+            		trace(a);
+            		trace(b);
+            		for(b__ in b_) {
+            			if(a == b__) {
+            				return true;
+            			}
+            		}
+            		
+            		return false;
+            	}
+            	
+            	return true;
+            };
+            
             saffron.Template.helpers.test = function(chunk : TemplateChunk, ctx, bodies, params) : TemplateChunk {
-            	return (bodies.block != null && resolve(chunk, ctx, params.a) == resolve(chunk, ctx, params.b)) ?
+            	var op = resolve(chunk, ctx, params.op);
+            	
+            	return (bodies.block != null &&
+            			((op == 'in' && includes(resolve(chunk, ctx, params.a), resolve(chunk, ctx, params.b))) || 
+            			 (op != 'in' && resolve(chunk, ctx, params.a) == resolve(chunk, ctx, params.b)))) ?
             		chunk.capture(bodies.block, ctx, function(string, chunk) {
             			chunk.end(string);
         			}) : chunk;
